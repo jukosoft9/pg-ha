@@ -4,6 +4,12 @@
   roles:
     - tls_ca
 
+- name: Reset connections before proceeding (guards against SSM sessions going idle during the local-only TLS play)
+  hosts: all
+  gather_facts: false
+  tasks:
+    - meta: reset_connection
+
 - name: OS baseline & hardening
   hosts: all
   become: true
