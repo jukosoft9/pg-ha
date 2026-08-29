@@ -9,3 +9,6 @@ ansible/*.retry
 ansible/.vault_pass
 
 *.deb
+
+# TLS - private keys, never committed
+ansible/tls_ca/

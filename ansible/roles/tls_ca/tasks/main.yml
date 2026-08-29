@@ -1,0 +1,27 @@
+---
+- name: Create local TLS working directory (control machine only — never synced to any node)
+  file:
+    path: "{{ playbook_dir }}/tls_ca"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  run_once: true
+
+- name: Generate CA private key (control machine only)
+  command: openssl genrsa -out {{ playbook_dir }}/tls_ca/ca.key 4096
+  args:
+    creates: "{{ playbook_dir }}/tls_ca/ca.key"
+  delegate_to: localhost
+  run_once: true
+
+- name: Generate self-signed CA certificate
+  command: >
+    openssl req -x509 -new -nodes
+    -key {{ playbook_dir }}/tls_ca/ca.key
+    -sha256 -days 3650
+    -out {{ playbook_dir }}/tls_ca/ca.crt
+    -subj "/CN=pg-ha-internal-ca"
+  args:
+    creates: "{{ playbook_dir }}/tls_ca/ca.crt"
+  delegate_to: localhost
+  run_once: true

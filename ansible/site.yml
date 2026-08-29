@@ -1,4 +1,9 @@
 ---
+- name: TLS certificate authority
+  hosts: all
+  roles:
+    - tls_ca
+
 - name: OS baseline & hardening
   hosts: all
   become: true
