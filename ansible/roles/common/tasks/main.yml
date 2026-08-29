@@ -1,0 +1,12 @@
+---
+- name: Chrony (NTP) — load-bearing for etcd lease timing
+  import_tasks: chrony.yml
+
+- name: SSH hardening
+  import_tasks: ssh_hardening.yml
+
+- name: Firewall
+  import_tasks: firewall.yml
+
+- name: Unattended security upgrades
+  import_tasks: unattended_upgrades.yml

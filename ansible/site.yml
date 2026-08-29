@@ -1,0 +1,6 @@
+---
+- name: OS baseline & hardening
+  hosts: all
+  become: true
+  roles:
+    - common

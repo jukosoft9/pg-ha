@@ -1,0 +1,12 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/terraform.tfvars
+
+# Ansible
+ansible/*.retry
+ansible/group_vars/vault.yml
+ansible/.vault_pass
+
+*.deb
