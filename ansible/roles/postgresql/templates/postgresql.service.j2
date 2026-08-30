@@ -1,0 +1,16 @@
+[Unit]
+Description=PostgreSQL 18 (custom data directory, not Debian-cluster-managed)
+After=network.target
+
+[Service]
+Type=forking
+User=postgres
+Group=postgres
+Environment=PGDATA={{ pgdata_dir }}
+ExecStart=/usr/lib/postgresql/18/bin/pg_ctl start -D ${PGDATA} -w -t 60
+ExecStop=/usr/lib/postgresql/18/bin/pg_ctl stop -D ${PGDATA} -m fast
+ExecReload=/usr/lib/postgresql/18/bin/pg_ctl reload -D ${PGDATA}
+TimeoutSec=120
+
+[Install]
+WantedBy=multi-user.target

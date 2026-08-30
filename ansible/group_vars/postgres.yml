@@ -1,0 +1,6 @@
+---
+pgdata_mount: /data/pgdata
+pgwal_mount: /data/pgwal
+etcd_mount: /data/etcd
+pgdata_dir: "{{ pgdata_mount }}/18/main"
+pgwal_dir: "{{ pgwal_mount }}/18/main"

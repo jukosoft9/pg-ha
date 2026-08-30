@@ -1,0 +1,32 @@
+---
+- name: Create TLS certificate directory
+  file:
+    path: /etc/postgresql-tls
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0750"
+
+- name: Copy CA certificate (public — used to verify peer certs)
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/ca.crt"
+    dest: /etc/postgresql-tls/ca.crt
+    owner: postgres
+    group: postgres
+    mode: "0644"
+
+- name: Copy this node's certificate
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.crt"
+    dest: /etc/postgresql-tls/server.crt
+    owner: postgres
+    group: postgres
+    mode: "0644"
+
+- name: Copy this node's private key (strict permissions — PostgreSQL refuses to start otherwise, same reasoning as our own SSH key)
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.key"
+    dest: /etc/postgresql-tls/server.key
+    owner: postgres
+    group: postgres
+    mode: "0600"

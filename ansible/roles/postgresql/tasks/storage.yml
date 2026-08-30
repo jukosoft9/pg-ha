@@ -1,0 +1,36 @@
+---
+- name: Format pgdata volume (idempotent — skips if already formatted)
+  filesystem:
+    fstype: ext4
+    dev: "{{ pgdata_device }}"
+
+- name: Format pgwal volume
+  filesystem:
+    fstype: ext4
+    dev: "{{ pgwal_device }}"
+
+- name: Format etcd volume
+  filesystem:
+    fstype: ext4
+    dev: "{{ etcd_device }}"
+
+- name: Create mount point directories (root-owned for now — chown to postgres happens after the package creates that user)
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0700"
+  loop:
+    - "{{ pgdata_mount }}"
+    - "{{ pgwal_mount }}"
+    - "{{ etcd_mount }}"
+
+- name: Mount volumes persistently (writes to /etc/fstab so they survive a reboot)
+  mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: ext4
+    state: mounted
+  loop:
+    - { path: "{{ pgdata_mount }}", src: "{{ pgdata_device }}" }
+    - { path: "{{ pgwal_mount }}", src: "{{ pgwal_device }}" }
+    - { path: "{{ etcd_mount }}", src: "{{ etcd_device }}" }

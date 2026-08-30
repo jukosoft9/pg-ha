@@ -15,3 +15,9 @@
   become: true
   roles:
     - common
+
+- name: PostgreSQL — storage and installation
+  hosts: postgres
+  become: true
+  roles:
+    - postgresql

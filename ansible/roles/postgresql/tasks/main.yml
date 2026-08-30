@@ -1,0 +1,15 @@
+---
+- name: Storage — format and mount dedicated volumes
+  import_tasks: storage.yml
+
+- name: Install PostgreSQL and disable the package's auto-initialized cluster
+  import_tasks: install.yml
+
+- name: Initialize the cluster on the dedicated volume
+  import_tasks: initdb.yml
+
+- name: Deploy TLS certificates
+  import_tasks: tls.yml
+
+- name: Configure and start PostgreSQL
+  import_tasks: configure.yml

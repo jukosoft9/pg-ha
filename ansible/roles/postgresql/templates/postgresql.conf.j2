@@ -1,0 +1,35 @@
+listen_addresses = '*'
+port = 5432
+max_connections = 100
+
+# Sized for a t3.medium (2 vCPU/4GB) learning instance — revisit when real
+# instance sizing and real workload numbers exist.
+shared_buffers = 512MB
+effective_cache_size = 1536MB
+work_mem = 4MB
+maintenance_work_mem = 64MB
+
+wal_level = replica
+max_wal_senders = 10
+max_replication_slots = 10
+wal_keep_size = 1GB
+hot_standby = on
+wal_log_hints = on
+
+archive_mode = off
+
+ssl = on
+ssl_cert_file = '/etc/postgresql-tls/server.crt'
+ssl_key_file = '/etc/postgresql-tls/server.key'
+ssl_ca_file = '/etc/postgresql-tls/ca.crt'
+
+password_encryption = scram-sha-256
+
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d.log'
+log_min_duration_statement = 250
+log_checkpoints = on
+log_connections = on
+log_disconnections = on
+log_lock_waits = on

@@ -1,0 +1,38 @@
+---
+- name: Set ownership of PostgreSQL data/WAL directories (now that the package has created the postgres user)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0700"
+  loop:
+    - "{{ pgdata_mount }}"
+    - "{{ pgwal_mount }}"
+  # deliberately NOT etcd_mount — that's a separate service's volume, not this role's concern
+
+- name: Write temporary password file for initdb (immediately deleted after use)
+  copy:
+    content: "{{ postgres_superuser_password }}"
+    dest: /tmp/pg_pwfile
+    owner: postgres
+    mode: "0600"
+  no_log: true
+
+- name: Initialize the PostgreSQL cluster on the dedicated volume
+  command: >
+    /usr/lib/postgresql/18/bin/initdb
+    -D {{ pgdata_dir }}
+    --waldir={{ pgwal_dir }}
+    -U postgres
+    --auth=scram-sha-256
+    --pwfile=/tmp/pg_pwfile
+  args:
+    creates: "{{ pgdata_dir }}/PG_VERSION"
+  become_user: postgres
+  no_log: true
+
+- name: Remove the temporary password file
+  file:
+    path: /tmp/pg_pwfile
+    state: absent
