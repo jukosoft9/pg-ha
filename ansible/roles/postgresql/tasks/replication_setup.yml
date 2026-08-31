@@ -1,0 +1,9 @@
+---
+- name: Create replication role on the primary
+  command: >
+    psql -c "CREATE ROLE replicator WITH REPLICATION LOGIN ENCRYPTED PASSWORD '{{ postgres_replication_password }}';"
+  become_user: postgres
+  register: create_role_result
+  failed_when: create_role_result.rc != 0 and 'already exists' not in create_role_result.stderr
+  changed_when: "'CREATE ROLE' in create_role_result.stdout"
+  no_log: true

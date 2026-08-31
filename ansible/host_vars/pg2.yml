@@ -1,0 +1,4 @@
+---
+pgdata_device: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol08a54b93abde04818
+pgwal_device: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0805f81cf1e1933cd
+etcd_device: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0e99f9795681991c9

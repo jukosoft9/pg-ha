@@ -5,11 +5,34 @@
 - name: Install PostgreSQL and disable the package's auto-initialized cluster
   import_tasks: install.yml
 
-- name: Initialize the cluster on the dedicated volume
+- name: Allow PostgreSQL traffic through the host firewall
+  import_tasks: firewall.yml
+
+- name: Set ownership of PostgreSQL data/WAL directories (all postgres hosts, now that the package user exists)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0700"
+  loop:
+    - "{{ pgdata_mount }}"
+    - "{{ pgwal_mount }}"
+
+- name: Initialize the cluster on the dedicated volume (primary only)
   import_tasks: initdb.yml
+  when: inventory_hostname in groups['pg_primary']
+
+- name: Provision replica via pg_basebackup (replicas only)
+  import_tasks: replica_setup.yml
+  when: inventory_hostname in groups['pg_replica']
 
 - name: Deploy TLS certificates
   import_tasks: tls.yml
 
 - name: Configure and start PostgreSQL
   import_tasks: configure.yml
+
+- name: Create replication role (primary only)
+  import_tasks: replication_setup.yml
+  when: inventory_hostname in groups['pg_primary']

@@ -2,3 +2,4 @@
 pgdata_device: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0fc50d42c514adc5d
 pgwal_device: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0fad90999168cac74
 etcd_device: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol039ed201048c46283
+private_ip: 10.0.0.83

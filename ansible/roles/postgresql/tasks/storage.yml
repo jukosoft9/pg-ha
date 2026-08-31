@@ -1,4 +1,12 @@
 ---
+- name: Ensure /data parent directory has correct, explicit permissions (never rely on umask for a shared parent — this bit us:pg1 got 0755 by accident, pg2 got 0700 and silently blocked all access underneath)
+  file:
+    path: /data
+    state: directory
+    owner: root
+    group: root
+    mode: "0711"
+
 - name: Format pgdata volume (idempotent — skips if already formatted)
   filesystem:
     fstype: ext4

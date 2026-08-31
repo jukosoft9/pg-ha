@@ -1,0 +1,7 @@
+---
+- name: Allow PostgreSQL traffic through ufw (VPC-internal only — AWS security groups already restrict this at the network layer; ufw is a separate, host-level enforcement point that needs its own matching rule)
+  ufw:
+    rule: allow
+    port: "5432"
+    proto: tcp
+    src: 10.0.0.0/16
