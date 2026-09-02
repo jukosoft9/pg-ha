@@ -33,6 +33,10 @@
 - name: Configure and start PostgreSQL
   import_tasks: configure.yml
 
+- name: Set explicit application_name for synchronous replication identification (replicas only)
+  import_tasks: replica_conninfo.yml
+  when: inventory_hostname in groups['pg_replica']  
+
 - name: Create replication role (primary only)
   import_tasks: replication_setup.yml
   when: inventory_hostname in groups['pg_primary']

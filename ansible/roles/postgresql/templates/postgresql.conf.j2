@@ -16,6 +16,10 @@ wal_keep_size = 1GB
 hot_standby = on
 wal_log_hints = on
 
+{% if inventory_hostname in groups['pg_primary'] %}
+synchronous_standby_names = 'ANY 1 (pg2, pg3)'
+{% endif %}
+
 archive_mode = off
 
 ssl = on
