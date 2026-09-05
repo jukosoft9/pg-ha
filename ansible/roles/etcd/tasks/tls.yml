@@ -1,0 +1,33 @@
+---
+- name: Create etcd TLS certificate directory
+  file:
+    path: /etc/etcd-tls
+    state: directory
+    owner: etcd
+    group: etcd
+    mode: "0750"
+
+- name: Copy CA certificate
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/ca.crt"
+    dest: /etc/etcd-tls/ca.crt
+    owner: etcd
+    group: etcd
+    mode: "0644"
+
+- name: Copy this node's certificate (same identity already issued for PostgreSQL in Stage 4 — no reason to mint a second one)
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.crt"
+    dest: /etc/etcd-tls/server.crt
+    owner: etcd
+    group: etcd
+    mode: "0644"
+
+- name: Copy this node's private key
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.key"
+    dest: /etc/etcd-tls/server.key
+    owner: etcd
+    group: etcd
+    mode: "0600"
+  no_log: true

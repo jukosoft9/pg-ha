@@ -1,0 +1,23 @@
+name: {{ inventory_hostname }}
+data-dir: {{ etcd_mount }}
+
+listen-peer-urls: https://{{ private_ip }}:2380
+listen-client-urls: https://{{ private_ip }}:2379,https://127.0.0.1:2379
+initial-advertise-peer-urls: https://{{ private_ip }}:2380
+advertise-client-urls: https://{{ private_ip }}:2379
+
+initial-cluster-token: {{ etcd_cluster_token }}
+initial-cluster: "{% for host in groups['etcd'] %}{{ host }}=https://{{ hostvars[host]['private_ip'] }}:2380{% if not loop.last %},{% endif %}{% endfor %}"
+initial-cluster-state: new
+
+client-transport-security:
+  cert-file: /etc/etcd-tls/server.crt
+  key-file: /etc/etcd-tls/server.key
+  trusted-ca-file: /etc/etcd-tls/ca.crt
+  client-cert-auth: true
+
+peer-transport-security:
+  cert-file: /etc/etcd-tls/server.crt
+  key-file: /etc/etcd-tls/server.key
+  trusted-ca-file: /etc/etcd-tls/ca.crt
+  client-cert-auth: true

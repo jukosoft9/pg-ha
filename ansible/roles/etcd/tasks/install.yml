@@ -1,0 +1,38 @@
+---
+- name: Create dedicated etcd system user/group
+  user:
+    name: etcd
+    system: true
+    shell: /usr/sbin/nologin
+    home: /var/lib/etcd
+    create_home: false
+
+- name: Take ownership of the dedicated etcd volume (mounted since Stage 5, deliberately left root-owned until this stage)
+  file:
+    path: "{{ etcd_mount }}"
+    state: directory
+    owner: etcd
+    group: etcd
+    mode: "0700"
+
+- name: Download etcd release archive
+  get_url:
+    url: "https://github.com/etcd-io/etcd/releases/download/v3.6.6/etcd-v3.6.6-linux-amd64.tar.gz"
+    dest: /tmp/etcd.tar.gz
+    mode: "0644"
+
+- name: Extract etcd archive
+  unarchive:
+    src: /tmp/etcd.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Install etcd + etcdctl binaries
+  copy:
+    src: "/tmp/etcd-v3.6.6-linux-amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+    remote_src: true
+  loop:
+    - etcd
+    - etcdctl

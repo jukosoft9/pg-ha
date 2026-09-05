@@ -1,3 +1,4 @@
 ---
 postgres_superuser_password: "{{ vault_postgres_superuser_password }}"
 postgres_replication_password: "{{ vault_postgres_replication_password }}"
+etcd_cluster_token: "{{ vault_etcd_cluster_token }}"

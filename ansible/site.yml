@@ -21,3 +21,9 @@
   become: true
   roles:
     - postgresql
+
+- name: etcd — distributed consensus store
+  hosts: etcd
+  become: true
+  roles:
+    - etcd
