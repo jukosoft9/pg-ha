@@ -1,0 +1,7 @@
+---
+- name: Allow PgBouncer traffic through ufw (VPC-internal only)
+  ufw:
+    rule: allow
+    port: "6432"
+    proto: tcp
+    src: 10.0.0.0/16

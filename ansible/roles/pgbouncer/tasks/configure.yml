@@ -1,0 +1,25 @@
+---
+- name: Deploy userlist.txt (contains real passwords — never log)
+  template:
+    src: userlist.txt.j2
+    dest: /etc/pgbouncer/userlist.txt
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  no_log: true
+  notify: restart pgbouncer
+
+- name: Deploy pgbouncer.ini
+  template:
+    src: pgbouncer.ini.j2
+    dest: /etc/pgbouncer/pgbouncer.ini
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: restart pgbouncer
+
+- name: Enable and start PgBouncer
+  systemd:
+    name: pgbouncer
+    enabled: true
+    state: started

@@ -1,0 +1,9 @@
+---
+- name: Install PgBouncer
+  import_tasks: install.yml
+
+- name: Allow PgBouncer traffic through the host firewall
+  import_tasks: firewall.yml
+
+- name: Configure and start PgBouncer
+  import_tasks: configure.yml

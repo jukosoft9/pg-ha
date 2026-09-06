@@ -1,0 +1,24 @@
+[databases]
+* = host=127.0.0.1 port=5432
+
+[pgbouncer]
+listen_addr = 0.0.0.0
+listen_port = 6432
+auth_type = scram-sha-256
+auth_file = /etc/pgbouncer/userlist.txt
+
+pool_mode = transaction
+max_client_conn = 200
+default_pool_size = 25
+
+admin_users = pgbouncer_admin
+stats_users = pgbouncer_admin
+
+server_tls_sslmode = require
+server_tls_ca_file = /etc/postgresql-tls/ca.crt
+client_tls_sslmode = require
+client_tls_cert_file = /etc/postgresql-tls/server.crt
+client_tls_key_file = /etc/postgresql-tls/server.key
+client_tls_ca_file = /etc/postgresql-tls/ca.crt
+
+logfile = /var/log/postgresql/pgbouncer.log

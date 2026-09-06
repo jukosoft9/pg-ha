@@ -27,3 +27,9 @@
   become: true
   roles:
     - patroni
+
+- name: PgBouncer — connection pooling
+  hosts: postgres
+  become: true
+  roles:
+    - pgbouncer
