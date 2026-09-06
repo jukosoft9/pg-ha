@@ -1,0 +1,11 @@
+---
+- name: restart patroni
+  systemd:
+    name: patroni
+    state: restarted
+
+- name: reload systemd and restart patroni
+  systemd:
+    daemon_reload: true
+    name: patroni
+    state: restarted

@@ -1,0 +1,99 @@
+scope: postgres-cluster
+namespace: /db/
+name: {{ inventory_hostname }}
+
+restapi:
+  listen: {{ private_ip }}:8008
+  connect_address: {{ private_ip }}:8008
+  certfile: /etc/postgresql-tls/server.crt
+  keyfile: /etc/postgresql-tls/server.key
+  cafile: /etc/postgresql-tls/ca.crt
+
+etcd3:
+  hosts:
+{% for host in groups['etcd'] %}
+    - {{ hostvars[host]['private_ip'] }}:2379
+{% endfor %}
+  protocol: https
+  cert: /etc/postgresql-tls/server.crt
+  key: /etc/postgresql-tls/server.key
+  cacert: /etc/postgresql-tls/ca.crt
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    synchronous_mode: true
+    synchronous_node_count: 1
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: replica
+        hot_standby: "on"
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_keep_size: 1GB
+        wal_log_hints: "on"
+      pg_hba:
+        - local all postgres peer
+        - local all all scram-sha-256
+        - hostssl all all 127.0.0.1/32 scram-sha-256
+        - hostssl all all 10.0.0.0/16 scram-sha-256
+        - hostssl replication replicator 10.0.0.0/16 scram-sha-256
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  users:
+    rewind_user:
+      password: {{ postgres_rewind_password }}
+      options:
+        - SUPERUSER
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: {{ private_ip }}:5432
+  data_dir: {{ pgdata_dir }}
+  bin_dir: /usr/lib/postgresql/18/bin
+  pgpass: /var/lib/postgresql/.pgpass
+  authentication:
+    superuser:
+      username: postgres
+      password: {{ postgres_superuser_password }}
+    replication:
+      username: replicator
+      password: {{ postgres_replication_password }}
+    rewind:
+      username: rewind_user
+      password: {{ postgres_rewind_password }}
+  parameters:
+    shared_buffers: 512MB
+    effective_cache_size: 1536MB
+    work_mem: 4MB
+    maintenance_work_mem: 64MB
+    ssl: "on"
+    ssl_cert_file: /etc/postgresql-tls/server.crt
+    ssl_key_file: /etc/postgresql-tls/server.key
+    ssl_ca_file: /etc/postgresql-tls/ca.crt
+    password_encryption: scram-sha-256
+    logging_collector: "on"
+    log_directory: log
+    log_filename: 'postgresql-%Y-%m-%d.log'
+    log_min_duration_statement: 250
+    log_checkpoints: "on"
+    log_connections: "on"
+    log_disconnections: "on"
+    log_lock_waits: "on"
+  create_replica_methods:
+    - basebackup
+
+watchdog:
+  mode: "off"
+
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false

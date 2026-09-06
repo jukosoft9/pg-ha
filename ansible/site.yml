@@ -16,14 +16,14 @@
   roles:
     - common
 
-- name: PostgreSQL — storage and installation
-  hosts: postgres
-  become: true
-  roles:
-    - postgresql
-
 - name: etcd — distributed consensus store
   hosts: etcd
   become: true
   roles:
     - etcd
+
+- name: Patroni — HA orchestration
+  hosts: postgres
+  become: true
+  roles:
+    - patroni
