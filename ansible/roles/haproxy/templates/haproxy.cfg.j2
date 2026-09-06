@@ -1,0 +1,36 @@
+global
+    maxconn 2000
+    log /dev/log local0
+
+defaults
+    log     global
+    mode    tcp
+    retries 3
+    timeout connect 3s
+    timeout client  30m
+    timeout server  30m
+
+listen stats
+    mode http
+    bind *:7000
+    stats enable
+    stats uri /
+
+listen postgres_write
+    bind *:5000
+    option httpchk GET /primary
+    http-check expect status 200
+    default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+{% for host in groups['postgres'] %}
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:6432 check port 8008 check-ssl verify required ca-file /etc/haproxy-tls/ca.crt
+{% endfor %}
+
+listen postgres_read
+    bind *:5001
+    option httpchk GET /replica
+    http-check expect status 200
+    balance roundrobin
+    default-server inter 3s fall 3 rise 2
+{% for host in groups['postgres'] %}
+    server {{ host }} {{ hostvars[host]['private_ip'] }}:6432 check port 8008 check-ssl verify required ca-file /etc/haproxy-tls/ca.crt
+{% endfor %}

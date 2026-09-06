@@ -1,0 +1,12 @@
+---
+- name: Install HAProxy
+  import_tasks: install.yml
+
+- name: Allow HAProxy traffic through the host firewall
+  import_tasks: firewall.yml
+
+- name: Deploy TLS CA for health check verification
+  import_tasks: tls.yml
+
+- name: Configure and start HAProxy
+  import_tasks: configure.yml

@@ -1,0 +1,11 @@
+---
+- name: Allow HAProxy client ports through ufw (VPC-internal for app traffic; stats port restricted separately)
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    src: 10.0.0.0/16
+  loop:
+    - "5000"
+    - "5001"
+    - "7000"

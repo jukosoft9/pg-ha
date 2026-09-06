@@ -33,3 +33,9 @@
   become: true
   roles:
     - pgbouncer
+
+- name: HAProxy — connection routing
+  hosts: loadbalancers
+  become: true
+  roles:
+    - haproxy

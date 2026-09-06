@@ -6,5 +6,8 @@
 - name: Install Patroni
   import_tasks: install.yml
 
+- name: Allow Patroni REST API traffic through the host firewall
+  import_tasks: firewall.yml
+
 - name: Configure and start Patroni
   import_tasks: configure.yml

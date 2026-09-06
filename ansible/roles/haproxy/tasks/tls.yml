@@ -1,0 +1,16 @@
+---
+- name: Create HAProxy TLS directory (for verifying Patroni's REST API cert during health checks)
+  file:
+    path: /etc/haproxy-tls
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy CA certificate
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/ca.crt"
+    dest: /etc/haproxy-tls/ca.crt
+    owner: root
+    group: root
+    mode: "0644"
