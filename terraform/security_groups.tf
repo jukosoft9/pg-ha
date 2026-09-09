@@ -30,6 +30,16 @@ resource "aws_security_group_rule" "pg_replication_and_etcd" {
   description              = "covers 2379-2380 (etcd) and 5432 (replication) between PG nodes"
 }
 
+resource "aws_security_group_rule" "pg_patroni_rest_from_pg" {
+  type                     = "ingress"
+  from_port                = 8008
+  to_port                  = 8008
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.pg.id
+  source_security_group_id = aws_security_group.pg.id
+  description              = "Patroni REST API between PG nodes needed for patronictl restart/reinit targeting a specific peer, missed in the original Stage 1 design (only LB and monitoring were given this path)"
+}
+
 resource "aws_security_group_rule" "pg_from_lb_pgbouncer" {
   type                     = "ingress"
   from_port                = 6432
