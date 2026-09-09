@@ -1,0 +1,22 @@
+[global]
+repo1-type=s3
+repo1-s3-bucket={{ backup_bucket }}
+repo1-s3-region={{ backup_region }}
+repo1-s3-endpoint=s3.{{ backup_region }}.amazonaws.com
+repo1-s3-key-type=auto
+repo1-path=/pgbackrest
+repo1-retention-full=4
+repo1-retention-diff=14
+
+process-max=2
+compress-type=zst
+compress-level=3
+start-fast=y
+
+log-level-console=info
+log-level-file=detail
+log-path=/var/log/pgbackrest
+
+[postgres-cluster]
+pg1-path={{ pgdata_dir }}
+pg1-port=5432

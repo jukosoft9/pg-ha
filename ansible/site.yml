@@ -34,6 +34,12 @@
   roles:
     - pgbouncer
 
+- name: pgBackRest — physical backups
+  hosts: postgres
+  become: true
+  roles:
+    - pgbackrest
+
 - name: HAProxy — connection routing
   hosts: loadbalancers
   become: true

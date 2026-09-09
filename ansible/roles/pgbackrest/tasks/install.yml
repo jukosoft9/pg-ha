@@ -1,0 +1,6 @@
+---
+- name: Install pgBackRest
+  apt:
+    name: pgbackrest
+    state: present
+    update_cache: true
