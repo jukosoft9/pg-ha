@@ -45,3 +45,27 @@
   become: true
   roles:
     - haproxy
+
+- name: node_exporter — OS-level metrics on every node
+  hosts: all
+  become: true
+  roles:
+    - node_exporter
+
+- name: postgres_exporter — PostgreSQL metrics
+  hosts: postgres
+  become: true
+  roles:
+    - postgres_exporter
+
+- name: pgbouncer_exporter — PgBouncer pooling metrics
+  hosts: postgres
+  become: true
+  roles:
+    - pgbouncer_exporter
+
+- name: Prometheus — metrics collection
+  hosts: mon1
+  become: true
+  roles:
+    - prometheus

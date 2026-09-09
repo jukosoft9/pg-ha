@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus pgbouncer_exporter
+After=network.target
+
+[Service]
+User=pgbouncer_exporter
+Group=pgbouncer_exporter
+Type=simple
+EnvironmentFile=/etc/pgbouncer_exporter/pgbouncer_exporter.env
+ExecStart=/usr/local/bin/pgbouncer_exporter --web.listen-address=:9127
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

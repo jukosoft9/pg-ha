@@ -1,0 +1,9 @@
+---
+- name: Install node_exporter
+  import_tasks: install.yml
+
+- name: Allow node_exporter traffic through the host firewall
+  import_tasks: firewall.yml
+
+- name: Configure and start node_exporter
+  import_tasks: configure.yml

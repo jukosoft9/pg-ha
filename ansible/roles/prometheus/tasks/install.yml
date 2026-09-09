@@ -1,0 +1,45 @@
+---
+- name: Create dedicated prometheus system user
+  user:
+    name: prometheus
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create Prometheus data directory
+  file:
+    path: /var/lib/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0750"
+
+- name: Download Prometheus release archive
+  get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.linux-amd64.tar.gz"
+    dest: /tmp/prometheus.tar.gz
+    mode: "0644"
+
+- name: Extract Prometheus archive
+  unarchive:
+    src: /tmp/prometheus.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Install prometheus and promtool binaries
+  copy:
+    src: "/tmp/prometheus-3.14.0.linux-amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+    remote_src: true
+  loop:
+    - prometheus
+    - promtool
+
+- name: Create /etc/prometheus directory
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0750"

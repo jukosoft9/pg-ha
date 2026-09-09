@@ -1,0 +1,7 @@
+---
+- name: Allow pgbouncer_exporter traffic from the monitoring host only
+  ufw:
+    rule: allow
+    port: "9127"
+    proto: tcp
+    src: "{{ hostvars['mon1']['private_ip'] }}"

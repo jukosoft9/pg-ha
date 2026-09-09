@@ -1,0 +1,11 @@
+---
+- name: restart pgbouncer_exporter
+  systemd:
+    name: pgbouncer_exporter
+    state: restarted
+
+- name: reload systemd and restart pgbouncer_exporter
+  systemd:
+    daemon_reload: true
+    name: pgbouncer_exporter
+    state: restarted

@@ -1,0 +1,26 @@
+---
+- name: Create dedicated pgbouncer_exporter system user
+  user:
+    name: pgbouncer_exporter
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Download pgbouncer_exporter release archive
+  get_url:
+    url: "https://github.com/prometheus-community/pgbouncer_exporter/releases/download/v0.12.0/pgbouncer_exporter-0.12.0.linux-amd64.tar.gz"
+    dest: /tmp/pgbouncer_exporter.tar.gz
+    mode: "0644"
+
+- name: Extract pgbouncer_exporter archive
+  unarchive:
+    src: /tmp/pgbouncer_exporter.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Install pgbouncer_exporter binary
+  copy:
+    src: "/tmp/pgbouncer_exporter-0.12.0.linux-amd64/pgbouncer_exporter"
+    dest: /usr/local/bin/pgbouncer_exporter
+    mode: "0755"
+    remote_src: true

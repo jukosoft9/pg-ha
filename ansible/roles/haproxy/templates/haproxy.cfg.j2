@@ -16,6 +16,12 @@ listen stats
     stats enable
     stats uri /
 
+frontend prometheus
+    bind *:8404
+    mode http
+    http-request use-service prometheus-exporter if { path /metrics }
+    no log
+
 listen postgres_write
     bind *:5000
     option httpchk GET /primary

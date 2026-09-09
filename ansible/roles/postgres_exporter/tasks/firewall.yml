@@ -1,0 +1,7 @@
+---
+- name: Allow postgres_exporter traffic from the monitoring host only
+  ufw:
+    rule: allow
+    port: "9187"
+    proto: tcp
+    src: "{{ hostvars['mon1']['private_ip'] }}"

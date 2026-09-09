@@ -1,0 +1,16 @@
+---
+- name: Create TLS directory for verifying scrape targets
+  file:
+    path: /etc/prometheus-tls
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0750"
+
+- name: Copy CA certificate (needed to verify Patroni's HTTPS metrics endpoint)
+  copy:
+    src: "{{ playbook_dir }}/tls_ca/ca.crt"
+    dest: /etc/prometheus-tls/ca.crt
+    owner: prometheus
+    group: prometheus
+    mode: "0644"

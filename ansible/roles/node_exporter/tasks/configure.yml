@@ -1,0 +1,14 @@
+---
+- name: Deploy node_exporter systemd unit
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    mode: "0644"
+  notify: reload systemd and restart node_exporter
+
+- name: Enable and start node_exporter
+  systemd:
+    name: node_exporter
+    daemon_reload: true
+    enabled: true
+    state: started

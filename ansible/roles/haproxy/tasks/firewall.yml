@@ -9,3 +9,10 @@
     - "5000"
     - "5001"
     - "7000"
+
+- name: Allow native HAProxy Prometheus metrics from the monitoring host only
+  ufw:
+    rule: allow
+    port: "8404"
+    proto: tcp
+    src: "{{ hostvars['mon1']['private_ip'] }}"

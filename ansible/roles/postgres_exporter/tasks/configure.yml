@@ -1,0 +1,32 @@
+---
+- name: Create /etc/postgres_exporter directory
+  file:
+    path: /etc/postgres_exporter
+    state: directory
+    owner: postgres_exporter
+    group: postgres_exporter
+    mode: "0750"
+
+- name: Deploy connection string (contains the real superuser password — never log)
+  template:
+    src: postgres_exporter.env.j2
+    dest: /etc/postgres_exporter/postgres_exporter.env
+    owner: postgres_exporter
+    group: postgres_exporter
+    mode: "0600"
+  no_log: true
+  notify: restart postgres_exporter
+
+- name: Deploy postgres_exporter systemd unit
+  template:
+    src: postgres_exporter.service.j2
+    dest: /etc/systemd/system/postgres_exporter.service
+    mode: "0644"
+  notify: reload systemd and restart postgres_exporter
+
+- name: Enable and start postgres_exporter
+  systemd:
+    name: postgres_exporter
+    daemon_reload: true
+    enabled: true
+    state: started

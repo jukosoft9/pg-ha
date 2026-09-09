@@ -1,0 +1,42 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: node
+    static_configs:
+      - targets:
+{% for host in groups['all'] %}
+          - "{{ hostvars[host]['private_ip'] }}:9100"
+{% endfor %}
+
+  - job_name: postgres
+    static_configs:
+      - targets:
+{% for host in groups['postgres'] %}
+          - "{{ hostvars[host]['private_ip'] }}:9187"
+{% endfor %}
+
+  - job_name: pgbouncer
+    static_configs:
+      - targets:
+{% for host in groups['postgres'] %}
+          - "{{ hostvars[host]['private_ip'] }}:9127"
+{% endfor %}
+
+  - job_name: haproxy
+    static_configs:
+      - targets:
+{% for host in groups['loadbalancers'] %}
+          - "{{ hostvars[host]['private_ip'] }}:8404"
+{% endfor %}
+
+  - job_name: patroni
+    scheme: https
+    tls_config:
+      ca_file: /etc/prometheus-tls/ca.crt
+    static_configs:
+      - targets:
+{% for host in groups['postgres'] %}
+          - "{{ hostvars[host]['private_ip'] }}:8008"
+{% endfor %}
