@@ -131,6 +131,24 @@ resource "aws_security_group_rule" "lb_haproxy_exporter" {
   source_security_group_id = aws_security_group.mon.id
 }
 
+resource "aws_security_group_rule" "lb_node_exporter" {
+  type                     = "ingress"
+  from_port                = 9100
+  to_port                  = 9100
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.lb.id
+  source_security_group_id = aws_security_group.mon.id
+}
+
+resource "aws_security_group_rule" "lb_haproxy_metrics" {
+  type                     = "ingress"
+  from_port                = 8404
+  to_port                  = 8404
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.lb.id
+  source_security_group_id = aws_security_group.mon.id
+}
+
 resource "aws_security_group_rule" "lb_ssh" {
   type              = "ingress"
   from_port         = 22
