@@ -75,3 +75,9 @@
   become: true
   roles:
     - alertmanager
+
+- name: Grafana — dashboards
+  hosts: mon1
+  become: true
+  roles:
+    - grafana

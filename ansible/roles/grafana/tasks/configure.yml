@@ -1,0 +1,15 @@
+---
+- name: Deploy Prometheus datasource provisioning
+  copy:
+    src: datasource.yml
+    dest: /etc/grafana/provisioning/datasources/prometheus.yml
+    owner: root
+    group: grafana
+    mode: "0640"
+  notify: restart grafana
+
+- name: Enable and start Grafana
+  systemd:
+    name: grafana-server
+    enabled: true
+    state: started
