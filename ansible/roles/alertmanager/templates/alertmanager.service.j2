@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus Alertmanager
+After=network.target
+
+[Service]
+User=alertmanager
+Group=alertmanager
+Type=simple
+ExecStart=/usr/local/bin/alertmanager \
+  --config.file=/etc/alertmanager/alertmanager.yml \
+  --storage.path=/var/lib/alertmanager \
+  --web.listen-address=127.0.0.1:9093
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

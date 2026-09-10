@@ -8,6 +8,15 @@
     mode: "0640"
   notify: restart prometheus
 
+- name: Deploy alert rules
+  copy:
+    src: alert_rules.yml
+    dest: /etc/prometheus/alert_rules.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0640"
+  notify: restart prometheus
+
 - name: Validate prometheus.yml before starting the service
   command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml
   changed_when: false

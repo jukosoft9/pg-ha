@@ -69,3 +69,9 @@
   become: true
   roles:
     - prometheus
+
+- name: Alertmanager — alert routing
+  hosts: mon1
+  become: true
+  roles:
+    - alertmanager

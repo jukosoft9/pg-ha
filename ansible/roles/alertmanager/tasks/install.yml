@@ -1,0 +1,45 @@
+---
+- name: Create dedicated alertmanager system user
+  user:
+    name: alertmanager
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create Alertmanager data directory
+  file:
+    path: /var/lib/alertmanager
+    state: directory
+    owner: alertmanager
+    group: alertmanager
+    mode: "0750"
+
+- name: Download Alertmanager release archive
+  get_url:
+    url: "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.linux-amd64.tar.gz"
+    dest: /tmp/alertmanager.tar.gz
+    mode: "0644"
+
+- name: Extract Alertmanager archive
+  unarchive:
+    src: /tmp/alertmanager.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Install alertmanager and amtool binaries
+  copy:
+    src: "/tmp/alertmanager-0.34.0.linux-amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+    remote_src: true
+  loop:
+    - alertmanager
+    - amtool
+
+- name: Create /etc/alertmanager directory
+  file:
+    path: /etc/alertmanager
+    state: directory
+    owner: alertmanager
+    group: alertmanager
+    mode: "0750"
