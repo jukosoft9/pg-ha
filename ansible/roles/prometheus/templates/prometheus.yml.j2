@@ -14,30 +14,34 @@ alerting:
 scrape_configs:
   - job_name: node
     static_configs:
-      - targets:
 {% for host in groups['all'] %}
-          - "{{ hostvars[host]['private_ip'] }}:9100"
+      - targets: ["{{ hostvars[host]['private_ip'] }}:9100"]
+        labels:
+          hostname: "{{ host }}"
 {% endfor %}
 
   - job_name: postgres
     static_configs:
-      - targets:
 {% for host in groups['postgres'] %}
-          - "{{ hostvars[host]['private_ip'] }}:9187"
+      - targets: ["{{ hostvars[host]['private_ip'] }}:9187"]
+        labels:
+          hostname: "{{ host }}"
 {% endfor %}
 
   - job_name: pgbouncer
     static_configs:
-      - targets:
 {% for host in groups['postgres'] %}
-          - "{{ hostvars[host]['private_ip'] }}:9127"
+      - targets: ["{{ hostvars[host]['private_ip'] }}:9127"]
+        labels:
+          hostname: "{{ host }}"
 {% endfor %}
 
   - job_name: haproxy
     static_configs:
-      - targets:
 {% for host in groups['loadbalancers'] %}
-          - "{{ hostvars[host]['private_ip'] }}:8404"
+      - targets: ["{{ hostvars[host]['private_ip'] }}:8404"]
+        labels:
+          hostname: "{{ host }}"
 {% endfor %}
 
   - job_name: patroni
@@ -45,7 +49,8 @@ scrape_configs:
     tls_config:
       ca_file: /etc/prometheus-tls/ca.crt
     static_configs:
-      - targets:
 {% for host in groups['postgres'] %}
-          - "{{ hostvars[host]['private_ip'] }}:8008"
+      - targets: ["{{ hostvars[host]['private_ip'] }}:8008"]
+        labels:
+          hostname: "{{ host }}"
 {% endfor %}
