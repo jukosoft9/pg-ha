@@ -292,3 +292,55 @@ advanced 9 -> 10 (confirming a real demotion/re-promotion cycle
 happened, not a no-op), pg_is_in_recovery() back to f, both replicas
 resumed streaming with zero lag. Full, clean self-healing, no manual
 intervention beyond restarting the two stopped instances.
+
+## Scenario 4: Old primary rejoining after failover
+
+Tests whether a demoted former leader can cleanly rejoin as a standby
+rather than getting stuck diverged. First happened once, unintentionally,
+as a side effect during Scenario 1 - but that instance was confounded by
+the postgresql@18-main masking bug discovered in that same scenario, so
+it was never clean evidence of the actual rejoin mechanism. Retested
+here in isolation, after that bug was already fixed.
+
+### Commands
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # confirmed pg3 = Leader, TL 10
+
+    ssh pg3 "sudo systemctl stop patroni"
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # pg2 promoted, TL advanced to 11
+
+    ssh pg3 "sudo systemctl start patroni"
+    ssh pg3 "sudo journalctl -u patroni --since '2 minutes ago' --no-pager | grep -iE 'rewind|following|diverge|timeline'"
+
+### Result
+
+Patroni's own log showed the exact divergence being detected explicitly:
+
+    Local timeline=10 lsn=0/C000028
+    primary_timeline=11
+    no action. I am (pg3), a secondary, and following a leader (pg2)
+
+pg3 reconciled cleanly and resumed streaming as a genuine standby within
+seconds - no manual intervention, no stuck/diverged state.
+
+Honest finding, not the one expected going in: grepping specifically for
+pg_rewind/rewind across the same window returned nothing at all - the
+mechanism actually exercised here was a plain timeline switch, not
+pg_rewind. Likely explanation: pg3 was stopped almost immediately after
+losing leadership, so it never accumulated any genuinely divergent
+writes of its own that would require rewinding away - a same-position
+timeline switch was sufficient. use_pg_rewind: true remains correctly
+configured and would be expected to matter more in a scenario where the
+old primary kept accepting writes for longer before being stopped -
+not tested here, and worth treating as a real, separate follow-up rather
+than assuming this result covers it.
+
+### Verification
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+
+All three nodes confirmed healthy at TL 11, zero lag on both standbys.
+No cleanup needed - this scenario ends in a genuinely healthy, real
+topology, not a state requiring restoration.
