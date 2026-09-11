@@ -464,3 +464,85 @@ members) - worth remembering as a real operational number, not just
 pg2 correctly reclaimed leadership once quorum returned - timeline
 advanced 11 -> 12, confirming a genuine demotion/re-promotion cycle,
 not a no-op. Full, clean self-healing.
+
+## Scenario 7: Genuine network partition on etcd traffic (not a service stop)
+
+Different failure mode from Scenario 6: instead of stopping the etcd
+service cleanly on peer nodes, this blocks all etcd traffic (ports
+2379-2380) between the leader and both peers using iptables, applied
+directly on the leader itself. Prediction going in, based on TCP theory
+(a silent packet drop gives no instant disconnect signal, unlike a
+closed port): this should take LONGER than Scenario 6's ~110 seconds
+to detect, not shorter.
+
+Applied the ordering lesson from Scenario 2 from the start this time -
+iptables -I (insert at position 1), not -A, given ufw's own
+ESTABLISHED,RELATED accept rule was already proven to sit ahead of
+anything appended.
+
+### Commands
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # confirmed pg2 = Leader
+
+    ssh pg2 "sudo iptables -I OUTPUT 1 -p tcp -d 10.0.0.83 --dport 2379:2380 -j DROP"
+    ssh pg2 "sudo iptables -I INPUT 1 -p tcp -s 10.0.0.83 --sport 2379:2380 -j DROP"
+    ssh pg2 "sudo iptables -I OUTPUT 1 -p tcp -d 10.0.2.236 --dport 2379:2380 -j DROP"
+    ssh pg2 "sudo iptables -I INPUT 1 -p tcp -s 10.0.2.236 --sport 2379:2380 -j DROP"
+
+    date -u
+    ssh pg2 "sudo -u postgres psql -c \"SELECT pg_is_in_recovery();\""
+
+### Result - prediction was wrong, and the real reason is worth understanding
+
+pg_is_in_recovery() showed t almost immediately. Initial log search
+(too narrow a --since window) appeared to show no explicit demotion,
+creating a real, temporary discrepancy - resolved by widening the
+search: patroni's log confirmed demotion at 19:50:51, essentially the
+same second the iptables rules were applied.
+
+    19:50:51 INFO: demoting self because DCS is not accessible and I was a leader
+    19:50:51 INFO: Demoting self (offline)
+    19:50:52 INFO: demoted self because DCS is not accessible and I was a leader
+
+Under a second - dramatically FASTER than Scenario 6's ~110 seconds,
+the opposite of what TCP-timeout theory predicted. The real reason: this
+block was far more total than Scenario 6's. Stopping etcd's service
+(Scenario 6) left the leader's own local etcd, and every other network
+path, completely untouched - only the specific keepalive/quorum
+operations against peers eventually failed. This iptables block affected
+ALL etcd traffic in both directions, and the log confirmed even pg2's
+connection attempts to its OWN local etcd (10.0.1.196) were timing out -
+a comprehensive, near-total isolation rather than a narrow one, which
+triggered Patroni's DCS-inaccessible detection almost immediately rather
+than after a long chain of individual operation timeouts.
+
+The repeated "Lock owner: pg2; I am pg2" log lines seen afterward are
+NOT evidence of continued false leadership claims - pg2 was already
+demoted by that point; these are simply its ongoing, harmless checks of
+who currently holds the lock (itself, since no one else could claim it
+either with quorum unreachable cluster-wide) while waiting for the
+partition to heal.
+
+### Real implication
+
+The two etcd-loss scenarios (6 and 7) produced genuinely different
+timings - ~110 seconds vs under 1 second - for what might look like "the
+same kind of failure" from a distance. The actual determining factor is
+how TOTAL the isolation is, not whether it's a clean stop versus a
+silent partition. A partial failure (leader's own etcd survives, only
+reachability to peers is lost) is the more dangerous, slower-detected
+case; a total failure (leader loses all etcd connectivity, including
+local) is detected almost instantly. This is a more nuanced, more useful
+finding than either scenario alone would have produced.
+
+### Recovery
+
+    ssh pg2 "sudo iptables -D OUTPUT -p tcp -d 10.0.0.83 --dport 2379:2380 -j DROP"
+    ssh pg2 "sudo iptables -D INPUT -p tcp -s 10.0.0.83 --sport 2379:2380 -j DROP"
+    ssh pg2 "sudo iptables -D OUTPUT -p tcp -d 10.0.2.236 --dport 2379:2380 -j DROP"
+    ssh pg2 "sudo iptables -D INPUT -p tcp -s 10.0.2.236 --sport 2379:2380 -j DROP"
+
+pg3 correctly elected as new leader (pg2 having demoted itself, one of
+the two remaining nodes had to take over) - timeline advanced 12 -> 13,
+both surviving nodes healthy with zero lag.
