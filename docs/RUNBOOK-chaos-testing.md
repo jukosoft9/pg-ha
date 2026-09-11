@@ -231,3 +231,64 @@ this exercise did not build.
     ssh pg1 "sudo iptables -D OUTPUT -p tcp -d 10.0.2.236 --dport 5432 -j DROP"
     ssh pg1 "sudo iptables -D INPUT -p tcp -s 10.0.2.236 --sport 5432 -j DROP"
     ssh pg3 "sudo -u postgres psql -c \"DROP TABLE chaos_test_marker;\""
+
+## Scenario 3: Kill both replicas simultaneously - full quorum loss
+
+A different kind of severity than scenarios 1-2: because etcd runs
+co-located on the same three PG nodes (a deliberate cost tradeoff from
+Stage 7, accepted risk of resource contention), killing both replicas
+does not just remove PostgreSQL standbys - it simultaneously drops etcd
+from 3-of-3 to 1-of-3, below the 2-of-3 quorum etcd needs to agree on
+anything at all. Predicted before running: the surviving primary should
+be unable to safely confirm its own leadership lease, and the correct,
+safe behavior is to stop accepting writes rather than keep serving on
+stale confidence.
+
+### Commands
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # confirmed pg1 + pg2 = both replicas, pg3 = Leader
+
+    aws ec2 stop-instances --instance-ids i-0a7f8e5bdfdfc9b0e i-031048a32502b2733
+
+    ssh pg3
+    sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
+    sudo journalctl -u patroni --since '5 minutes ago' --no-pager | grep -iE "demot|leader|recovery|promot"
+
+### Result
+
+patronictl list on pg3 itself started failing with real, repeated
+etcd3 MaxRetryError/ReadTimeoutError tracebacks - correct and expected:
+with only 1-of-3 etcd members reachable, no coherent cluster state can
+be agreed on, and patronictl honestly surfaced that rather than
+returning a stale or guessed answer.
+
+The critical result: pg_is_in_recovery() on pg3 returned t - genuinely
+in standby mode, not still claiming primary. Patroni's own log confirmed
+why, in its own words:
+
+    demoting self because DCS is not accessible and I was a leader
+    Demoting self (offline)
+    demoted self because DCS is not accessible and I was a leader
+
+This is the correct, safety-first design decision working exactly as
+intended: the instant pg3 could no longer confirm its leadership lease
+against etcd, it voluntarily gave up write access rather than risk
+serving writes on unconfirmable authority. The entire cluster was left
+correctly, deliberately unable to accept any writes at all until at
+least one other node (and therefore etcd quorum) returned - not a bug,
+the honest, accepted cost of the co-located etcd design under its worst
+realistic failure.
+
+### Recovery
+
+    aws ec2 start-instances --instance-ids i-0a7f8e5bdfdfc9b0e i-031048a32502b2733
+    # wait ~90s
+    ssh pg3 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    ssh pg3 "sudo -u postgres psql -c \"SELECT pg_is_in_recovery();\""
+
+pg3 correctly re-promoted itself the moment quorum returned - timeline
+advanced 9 -> 10 (confirming a real demotion/re-promotion cycle
+happened, not a no-op), pg_is_in_recovery() back to f, both replicas
+resumed streaming with zero lag. Full, clean self-healing, no manual
+intervention beyond restarting the two stopped instances.
