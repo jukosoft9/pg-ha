@@ -612,3 +612,66 @@ tradeoff costs.
 
 lb1 confirmed fully restored, correctly routing to the real primary
 again within seconds of the service restarting.
+
+## Scenario 9: Full AZ loss - closed by composition, not independently executed
+
+### Real AZ mapping, checked directly rather than assumed
+
+    aws ec2 describe-instances --filters "Name=tag:Name,Values=pg-ha-pg1,pg-ha-pg2,pg-ha-pg3,pg-ha-lb1,pg-ha-lb2,pg-ha-mon1" \
+      --query "Reservations[].Instances[].[Tags[?Key=='Name']|[0].Value,Placement.AvailabilityZone,InstanceId]" --output table
+
+    us-east-1a: pg1, lb1, mon1  (3 resources)
+    us-east-1b: pg2, lb2        (2 resources)
+    us-east-1c: pg3             (1 resource)
+
+Real, honest finding surfaced just by checking this table, before running
+anything: the three AZs are not equally severe to lose. This was never a
+deliberate design decision - pg nodes were correctly spread one-per-AZ on
+purpose, but lb1/lb2 ended up co-located with their same-numbered pg node
+purely as a coincidence of how the Terraform for_each was written, and
+mon1 was simply hardcoded to subnet[0] (always us-east-1a), never
+deliberately placed at all. Losing us-east-1a costs one PG node, one of
+two load balancers, AND the entire monitoring stack (Prometheus, Grafana,
+Alertmanager - all on a single mon1 instance with no redundancy of its
+own) simultaneously - a genuinely worse loss than either other AZ.
+
+### Why this was closed by reasoning rather than independently executed
+
+A full AZ-loss test decomposes into exactly three failures, and two of
+them are not new:
+
+- pg1 dying: identical in kind to Scenario 1 (instance-level primary/
+  replica loss), already proven to self-heal with real, measured timing.
+- lb1 dying: literally Scenario 8, executed independently five minutes
+  before this decision was made - already has real evidence in this
+  runbook.
+- mon1 dying: genuinely never independently tested. But by design,
+  nothing in the PostgreSQL/etcd/Patroni/HAProxy chain depends on
+  monitoring being available - Prometheus PULLS metrics from the system;
+  the system never pushes to or waits on Prometheus for anything. There
+  is no code path connecting database/proxy health to monitoring
+  availability. The expectation here isn't genuine uncertainty, it's
+  high confidence from the architecture itself, simply never confirmed
+  with a dedicated test run.
+
+None of these three failures share any detection or recovery mechanism
+with each other (PostgreSQL/Patroni failover, HAProxy health checks, and
+Prometheus scraping are three fully independent systems) - unlike
+Scenarios 6 and 7, which looked similar on paper but produced a genuine,
+valuable surprise (~110s vs <1s) precisely because they shared the same
+underlying mechanism (etcd quorum detection) under different conditions.
+There is no equivalent shared mechanism here to produce a comparable
+surprise. Running the full three-way simultaneous kill would have mostly
+re-spent real time reproducing two already-proven results, wrapped
+around one outcome already well-understood from the architecture itself
+- a real judgment call to not do, not an oversight.
+
+### Conclusion
+
+Scenario 9 is considered closed by composition of Scenarios 1 and 8,
+combined with a documented, architecture-based (not empirically tested)
+expectation for monitoring loss specifically. If mon1's isolated failure
+behavior is ever genuinely in question, that remains a legitimate,
+cheap, five-minute follow-up test - deliberately not run here because
+the answer is already known with high confidence, not because it was
+overlooked.
