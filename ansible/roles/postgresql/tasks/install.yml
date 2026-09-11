@@ -18,7 +18,7 @@
     state: present
     update_cache: true
 
-- name: Stop and mask the auto-started default cluster (PGDG's package starts one immediately on /var/lib/postgresql — we run our own on the dedicated volume; masked (not just disabled) because something — likely unattended-upgrades re-running the package's own maintainer script — silently re-enabled this on all three PG nodes after a later reboot, found via chaos testing)
+- name: Stop and mask the auto-started default cluster (masked, not just disabled — see docs/RUNBOOK-chaos-testing.md for why)
   ansible.builtin.systemd:
     name: "postgresql@18-main"
     state: stopped

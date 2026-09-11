@@ -8,7 +8,7 @@
 - name: Allow PostgreSQL traffic through the host firewall
   ansible.builtin.import_tasks: firewall.yml
 
-- name: Set ownership of PostgreSQL data/WAL directories (all postgres hosts, now that the package user exists — a genuine prerequisite for Patroni's own bootstrap, not something Patroni does itself)
+- name: Set ownership of PostgreSQL data/WAL directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
