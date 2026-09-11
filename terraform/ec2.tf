@@ -38,17 +38,17 @@ locals {
 }
 
 resource "aws_instance" "pg" {
-  for_each                    = local.pg_nodes
-  ami                          = data.aws_ami.ubuntu.id
+  for_each = local.pg_nodes
+  ami      = data.aws_ami.ubuntu.id
   lifecycle {
     ignore_changes = [ami]
   }
-  instance_type                = var.pg_instance_type
-  subnet_id                    = aws_subnet.private[each.value.az_index].id
-  vpc_security_group_ids       = [aws_security_group.pg.id]
-  key_name                     = var.key_pair_name
-  iam_instance_profile         = aws_iam_instance_profile.node.name
-  associate_public_ip_address  = false
+  instance_type               = var.pg_instance_type
+  subnet_id                   = aws_subnet.private[each.value.az_index].id
+  vpc_security_group_ids      = [aws_security_group.pg.id]
+  key_name                    = var.key_pair_name
+  iam_instance_profile        = aws_iam_instance_profile.node.name
+  associate_public_ip_address = false
 
   root_block_device {
     volume_size = 20
@@ -104,18 +104,18 @@ resource "aws_volume_attachment" "etcd" {
 }
 
 resource "aws_instance" "lb" {
-  for_each                     = { lb1 = 0, lb2 = 1 }
-  ami                          = data.aws_ami.ubuntu.id
+  for_each = { lb1 = 0, lb2 = 1 }
+  ami      = data.aws_ami.ubuntu.id
   lifecycle {
     ignore_changes = [ami]
   }
-  instance_type                = var.lb_instance_type
-  subnet_id                    = aws_subnet.private[each.value].id
-  vpc_security_group_ids       = [aws_security_group.lb.id]
-  key_name                     = var.key_pair_name
-  iam_instance_profile         = aws_iam_instance_profile.node.name
-  associate_public_ip_address  = false
-  source_dest_check            = false # required for Keepalived VRRP — traffic for the VIP arrives addressed to an IP that isn't the instance's own, and AWS drops that by default unless this is off
+  instance_type               = var.lb_instance_type
+  subnet_id                   = aws_subnet.private[each.value].id
+  vpc_security_group_ids      = [aws_security_group.lb.id]
+  key_name                    = var.key_pair_name
+  iam_instance_profile        = aws_iam_instance_profile.node.name
+  associate_public_ip_address = false
+  source_dest_check           = false # required for Keepalived VRRP — traffic for the VIP arrives addressed to an IP that isn't the instance's own, and AWS drops that by default unless this is off
 
   root_block_device {
     volume_size = 20
@@ -126,16 +126,16 @@ resource "aws_instance" "lb" {
 }
 
 resource "aws_instance" "mon1" {
-  ami                          = data.aws_ami.ubuntu.id
+  ami = data.aws_ami.ubuntu.id
   lifecycle {
     ignore_changes = [ami]
   }
-  instance_type                = var.mon_instance_type
-  subnet_id                    = aws_subnet.private[0].id
-  vpc_security_group_ids       = [aws_security_group.mon.id]
-  key_name                     = var.key_pair_name
-  iam_instance_profile         = aws_iam_instance_profile.node.name
-  associate_public_ip_address  = false
+  instance_type               = var.mon_instance_type
+  subnet_id                   = aws_subnet.private[0].id
+  vpc_security_group_ids      = [aws_security_group.mon.id]
+  key_name                    = var.key_pair_name
+  iam_instance_profile        = aws_iam_instance_profile.node.name
+  associate_public_ip_address = false
 
   root_block_device {
     volume_size = 20

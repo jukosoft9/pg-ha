@@ -1,9 +1,9 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket" "backup" {
-  bucket           = "${var.backup_bucket_name}-${data.aws_caller_identity.current.account_id}-${var.region}"
-  force_destroy    = true
-  tags             = { Name = "${var.project}-backups" }
+  bucket        = "${var.backup_bucket_name}-${data.aws_caller_identity.current.account_id}-${var.region}"
+  force_destroy = true
+  tags          = { Name = "${var.project}-backups" }
 }
 
 resource "aws_s3_bucket_versioning" "backup" {
