@@ -1,13 +1,13 @@
 ---
 - name: Create dedicated alertmanager system user
-  user:
+  ansible.builtin.user:
     name: alertmanager
     system: true
     shell: /usr/sbin/nologin
     create_home: false
 
 - name: Create Alertmanager data directory
-  file:
+  ansible.builtin.file:
     path: /var/lib/alertmanager
     state: directory
     owner: alertmanager
@@ -15,19 +15,19 @@
     mode: "0750"
 
 - name: Download Alertmanager release archive
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/prometheus/alertmanager/releases/download/v0.34.0/alertmanager-0.34.0.linux-amd64.tar.gz"
     dest: /tmp/alertmanager.tar.gz
     mode: "0644"
 
 - name: Extract Alertmanager archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: /tmp/alertmanager.tar.gz
     dest: /tmp
     remote_src: true
 
 - name: Install alertmanager and amtool binaries
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/alertmanager-0.34.0.linux-amd64/{{ item }}"
     dest: "/usr/local/bin/{{ item }}"
     mode: "0755"
@@ -37,7 +37,7 @@
     - amtool
 
 - name: Create /etc/alertmanager directory
-  file:
+  ansible.builtin.file:
     path: /etc/alertmanager
     state: directory
     owner: alertmanager

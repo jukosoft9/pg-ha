@@ -1,6 +1,6 @@
 ---
 - name: Create TLS directory for verifying scrape targets
-  file:
+  ansible.builtin.file:
     path: /etc/prometheus-tls
     state: directory
     owner: prometheus
@@ -8,7 +8,7 @@
     mode: "0750"
 
 - name: Copy CA certificate (needed to verify Patroni's HTTPS metrics endpoint)
-  copy:
+  ansible.builtin.copy:
     src: "{{ playbook_dir }}/tls_ca/ca.crt"
     dest: /etc/prometheus-tls/ca.crt
     owner: prometheus

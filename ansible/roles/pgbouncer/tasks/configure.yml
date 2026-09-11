@@ -1,6 +1,6 @@
 ---
 - name: Deploy userlist.txt (contains real passwords — never log)
-  template:
+  ansible.builtin.template:
     src: userlist.txt.j2
     dest: /etc/pgbouncer/userlist.txt
     owner: postgres
@@ -10,7 +10,7 @@
   notify: restart pgbouncer
 
 - name: Deploy pgbouncer.ini
-  template:
+  ansible.builtin.template:
     src: pgbouncer.ini.j2
     dest: /etc/pgbouncer/pgbouncer.ini
     owner: postgres
@@ -19,7 +19,7 @@
   notify: restart pgbouncer
 
 - name: Enable and start PgBouncer
-  systemd:
+  ansible.builtin.systemd:
     name: pgbouncer
     enabled: true
     state: started

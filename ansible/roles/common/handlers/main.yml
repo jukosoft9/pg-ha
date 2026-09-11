@@ -1,10 +1,10 @@
 ---
-- name: restart chrony
-  systemd:
+- name: Restart chrony
+  ansible.builtin.systemd:
     name: chrony
     state: restarted
 
-- name: restart sshd
-  systemd:
+- name: Restart sshd
+  ansible.builtin.systemd:
     name: ssh
     state: restarted

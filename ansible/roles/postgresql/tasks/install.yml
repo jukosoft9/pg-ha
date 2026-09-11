@@ -1,25 +1,26 @@
 ---
 - name: Add PGDG apt repository signing key
-  apt_key:
+  ansible.builtin.apt_key:
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     state: present
 
 - name: Add PGDG apt repository (official PostgreSQL packages — Ubuntu's own repos only ship one PG version, often not the latest)
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
     state: present
     filename: pgdg
 
 - name: Install PostgreSQL 18
-  apt:
+  ansible.builtin.apt:
     name:
       - postgresql-18
       - postgresql-contrib-18
     state: present
     update_cache: true
 
-- name: Stop and disable the auto-started default cluster (PGDG's package starts one immediately on /var/lib/postgresql — we don't want that, we're initializing our own on the dedicated volume)
-  systemd:
+- name: Stop and disable the auto-started default cluster (PGDG's package starts one immediately on /var/lib/postgresql — we don't want that, we're initializing
+    our own on the dedicated volume)
+  ansible.builtin.systemd:
     name: "postgresql@18-main"
     state: stopped
     enabled: false

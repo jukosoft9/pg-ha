@@ -1,28 +1,28 @@
 ---
 - name: Stop and disable the hand-managed PostgreSQL service
-  systemd:
+  ansible.builtin.systemd:
     name: pg18
     state: stopped
     enabled: false
   failed_when: false
 
 - name: Remove the old systemd unit (Patroni will use its own)
-  file:
+  ansible.builtin.file:
     path: /etc/systemd/system/pg18.service
     state: absent
 
 - name: Wipe existing PGDATA (rebuilding fresh under Patroni, not adopting)
-  file:
+  ansible.builtin.file:
     path: "{{ pgdata_dir }}"
     state: absent
 
 - name: Wipe existing WAL directory
-  file:
+  ansible.builtin.file:
     path: "{{ pgwal_dir }}"
     state: absent
 
 - name: Recreate empty pgdata/pgwal parent structure for Patroni to bootstrap into
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     owner: postgres

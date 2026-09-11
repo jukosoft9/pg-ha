@@ -1,25 +1,25 @@
 ---
 - name: Install ufw
-  apt:
+  ansible.builtin.apt:
     name: ufw
     state: present
 
 - name: Allow SSH before enabling ufw — ordering matters here
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "22"
     proto: tcp
 
 - name: Set default deny incoming
-  ufw:
+  community.general.ufw:
     direction: incoming
     policy: deny
 
 - name: Set default allow outgoing
-  ufw:
+  community.general.ufw:
     direction: outgoing
     policy: allow
 
 - name: Enable ufw
-  ufw:
+  community.general.ufw:
     state: enabled

@@ -1,11 +1,11 @@
 ---
-- name: restart pgbouncer_exporter
-  systemd:
+- name: Restart pgbouncer_exporter
+  ansible.builtin.systemd:
     name: pgbouncer_exporter
     state: restarted
 
-- name: reload systemd and restart pgbouncer_exporter
-  systemd:
+- name: Reload systemd and restart pgbouncer_exporter
+  ansible.builtin.systemd:
     daemon_reload: true
     name: pgbouncer_exporter
     state: restarted

@@ -1,6 +1,6 @@
 ---
 - name: Deploy haproxy.cfg
-  template:
+  ansible.builtin.template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
     owner: root
@@ -9,7 +9,7 @@
   notify: restart haproxy
 
 - name: Enable and start HAProxy
-  systemd:
+  ansible.builtin.systemd:
     name: haproxy
     enabled: true
     state: started

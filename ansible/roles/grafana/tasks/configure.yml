@@ -1,6 +1,6 @@
 ---
 - name: Deploy Prometheus datasource provisioning
-  copy:
+  ansible.builtin.copy:
     src: datasource.yml
     dest: /etc/grafana/provisioning/datasources/prometheus.yml
     owner: root
@@ -9,7 +9,7 @@
   notify: restart grafana
 
 - name: Enable and start Grafana
-  systemd:
+  ansible.builtin.systemd:
     name: grafana-server
     enabled: true
     state: started

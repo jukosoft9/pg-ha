@@ -1,13 +1,13 @@
 ---
 - name: Decommission hand-managed PostgreSQL, prepare for Patroni bootstrap (one-time migration only — never runs on a normal playbook run)
-  import_tasks: decommission.yml
+  ansible.builtin.import_tasks: decommission.yml
   tags: [never, decommission]
 
 - name: Install Patroni
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Allow Patroni REST API traffic through the host firewall
-  import_tasks: firewall.yml
+  ansible.builtin.import_tasks: firewall.yml
 
 - name: Configure and start Patroni
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml

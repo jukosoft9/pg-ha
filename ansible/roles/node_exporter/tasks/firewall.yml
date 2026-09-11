@@ -1,6 +1,6 @@
 ---
 - name: Allow node_exporter traffic from the monitoring host only
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "9100"
     proto: tcp

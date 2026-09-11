@@ -1,6 +1,6 @@
 ---
 - name: Write temporary password file for initdb (immediately deleted after use)
-  copy:
+  ansible.builtin.copy:
     content: "{{ postgres_superuser_password }}"
     dest: /tmp/pg_pwfile
     owner: postgres
@@ -8,7 +8,7 @@
   no_log: true
 
 - name: Initialize the PostgreSQL cluster on the dedicated volume
-  command: >
+  ansible.builtin.command: >
     /usr/lib/postgresql/18/bin/initdb
     -D {{ pgdata_dir }}
     --waldir={{ pgwal_dir }}
@@ -17,10 +17,11 @@
     --pwfile=/tmp/pg_pwfile
   args:
     creates: "{{ pgdata_dir }}/PG_VERSION"
+  become: true
   become_user: postgres
   no_log: true
 
 - name: Remove the temporary password file
-  file:
+  ansible.builtin.file:
     path: /tmp/pg_pwfile
     state: absent

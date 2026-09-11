@@ -1,6 +1,6 @@
 ---
 - name: Create /etc/etcd config directory
-  file:
+  ansible.builtin.file:
     path: /etc/etcd
     state: directory
     owner: etcd
@@ -8,7 +8,7 @@
     mode: "0750"
 
 - name: Deploy etcd.conf.yml
-  template:
+  ansible.builtin.template:
     src: etcd.conf.yml.j2
     dest: /etc/etcd/etcd.conf.yml
     owner: etcd
@@ -17,14 +17,14 @@
   notify: restart etcd
 
 - name: Deploy etcd systemd unit
-  template:
+  ansible.builtin.template:
     src: etcd.service.j2
     dest: /etc/systemd/system/etcd.service
     mode: "0644"
   notify: reload systemd and restart etcd
 
 - name: Enable and start etcd
-  systemd:
+  ansible.builtin.systemd:
     name: etcd
     daemon_reload: true
     enabled: true

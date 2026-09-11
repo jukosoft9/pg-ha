@@ -1,9 +1,9 @@
 ---
 - name: Install pgbouncer_exporter
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Allow pgbouncer_exporter traffic through the host firewall
-  import_tasks: firewall.yml
+  ansible.builtin.import_tasks: firewall.yml
 
 - name: Configure and start pgbouncer_exporter
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml

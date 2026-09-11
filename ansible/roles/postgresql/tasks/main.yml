@@ -1,15 +1,15 @@
 ---
 - name: Storage — format and mount dedicated volumes
-  import_tasks: storage.yml
+  ansible.builtin.import_tasks: storage.yml
 
 - name: Install PostgreSQL and disable the package's auto-initialized cluster
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Allow PostgreSQL traffic through the host firewall
-  import_tasks: firewall.yml
+  ansible.builtin.import_tasks: firewall.yml
 
 - name: Set ownership of PostgreSQL data/WAL directories (all postgres hosts, now that the package user exists)
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     owner: postgres
@@ -20,23 +20,23 @@
     - "{{ pgwal_mount }}"
 
 - name: Initialize the cluster on the dedicated volume (primary only)
-  import_tasks: initdb.yml
+  ansible.builtin.import_tasks: initdb.yml
   when: inventory_hostname in groups['pg_primary']
 
 - name: Provision replica via pg_basebackup (replicas only)
-  import_tasks: replica_setup.yml
+  ansible.builtin.import_tasks: replica_setup.yml
   when: inventory_hostname in groups['pg_replica']
 
 - name: Deploy TLS certificates
-  import_tasks: tls.yml
+  ansible.builtin.import_tasks: tls.yml
 
 - name: Configure and start PostgreSQL
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml
 
 - name: Set explicit application_name for synchronous replication identification (replicas only)
-  import_tasks: replica_conninfo.yml
-  when: inventory_hostname in groups['pg_replica']  
+  ansible.builtin.import_tasks: replica_conninfo.yml
+  when: inventory_hostname in groups['pg_replica']
 
 - name: Create replication role (primary only)
-  import_tasks: replication_setup.yml
+  ansible.builtin.import_tasks: replication_setup.yml
   when: inventory_hostname in groups['pg_primary']

@@ -1,6 +1,6 @@
 ---
 - name: Create local TLS working directory (control machine only — never synced to any node)
-  file:
+  ansible.builtin.file:
     path: "{{ playbook_dir }}/tls_ca"
     state: directory
     mode: "0700"
@@ -8,14 +8,14 @@
   run_once: true
 
 - name: Generate CA private key (control machine only)
-  command: openssl genrsa -out {{ playbook_dir }}/tls_ca/ca.key 4096
+  ansible.builtin.command: openssl genrsa -out {{ playbook_dir }}/tls_ca/ca.key 4096
   args:
     creates: "{{ playbook_dir }}/tls_ca/ca.key"
   delegate_to: localhost
   run_once: true
 
 - name: Generate self-signed CA certificate
-  command: >
+  ansible.builtin.command: >
     openssl req -x509 -new -nodes
     -key {{ playbook_dir }}/tls_ca/ca.key
     -sha256 -days 3650
@@ -27,13 +27,13 @@
   run_once: true
 
 - name: Generate per-node private key (control machine only, one per host)
-  command: openssl genrsa -out {{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.key 2048
+  ansible.builtin.command: openssl genrsa -out {{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.key 2048
   args:
     creates: "{{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.key"
   delegate_to: localhost
 
 - name: Generate a certificate signing request (CSR) for this node
-  command: >
+  ansible.builtin.command: >
     openssl req -new
     -key {{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.key
     -out {{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.csr
@@ -43,14 +43,15 @@
   delegate_to: localhost
 
 - name: Write the SAN (Subject Alternative Name) config for this node
-  copy:
+  ansible.builtin.copy:
     dest: "{{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.ext"
     content: |
       subjectAltName = DNS:{{ inventory_hostname }}, IP:{{ hostvars[inventory_hostname]['ansible_facts']['default_ipv4']['address'] }}
+    mode: "0644"
   delegate_to: localhost
 
 - name: Sign the node's CSR with our CA, producing its actual certificate
-  command: >
+  ansible.builtin.command: >
     openssl x509 -req
     -in {{ playbook_dir }}/tls_ca/{{ inventory_hostname }}.csr
     -CA {{ playbook_dir }}/tls_ca/ca.crt

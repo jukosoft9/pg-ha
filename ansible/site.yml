@@ -8,7 +8,8 @@
   hosts: all
   gather_facts: false
   tasks:
-    - meta: reset_connection
+    - name: Reset connection
+      ansible.builtin.meta: reset_connection
 
 - name: OS baseline & hardening
   hosts: all
@@ -16,7 +17,7 @@
   roles:
     - common
 
-- name: etcd — distributed consensus store
+- name: Etcd — distributed consensus store
   hosts: etcd
   become: true
   roles:
@@ -34,7 +35,7 @@
   roles:
     - pgbouncer
 
-- name: pgBackRest — physical backups
+- name: PgBackRest — physical backups
   hosts: postgres
   become: true
   roles:
@@ -46,19 +47,19 @@
   roles:
     - haproxy
 
-- name: node_exporter — OS-level metrics on every node
+- name: Node_exporter — OS-level metrics on every node
   hosts: all
   become: true
   roles:
     - node_exporter
 
-- name: postgres_exporter — PostgreSQL metrics
+- name: Postgres_exporter — PostgreSQL metrics
   hosts: postgres
   become: true
   roles:
     - postgres_exporter
 
-- name: pgbouncer_exporter — PgBouncer pooling metrics
+- name: Pgbouncer_exporter — PgBouncer pooling metrics
   hosts: postgres
   become: true
   roles:

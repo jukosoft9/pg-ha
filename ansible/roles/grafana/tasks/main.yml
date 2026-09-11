@@ -1,6 +1,6 @@
 ---
 - name: Install Grafana
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Configure Grafana
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml

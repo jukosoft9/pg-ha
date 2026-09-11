@@ -1,10 +1,17 @@
 ---
 - name: Set primary_conninfo with explicit application_name (required for synchronous_standby_names to identify replicas by name)
-  command: >
-    psql -c "ALTER SYSTEM SET primary_conninfo = 'user=replicator password={{ postgres_replication_password }} host={{ hostvars[groups['pg_primary'][0]]['private_ip'] }} port=5432 application_name={{ inventory_hostname }} sslmode=require';"
+  ansible.builtin.command: >
+    psql -c "ALTER SYSTEM SET primary_conninfo = 'user=replicator
+    password={{ postgres_replication_password }}
+    host={{ hostvars[groups['pg_primary'][0]]['private_ip'] }}
+    port=5432 application_name={{ inventory_hostname }} sslmode=require';"
+  become: true
   become_user: postgres
   no_log: true
+  changed_when: true
 
 - name: Reload to apply new primary_conninfo (walreceiver restarts automatically — no full service restart needed)
-  command: psql -c "SELECT pg_reload_conf();"
+  ansible.builtin.command: psql -c "SELECT pg_reload_conf();"
+  become: true
   become_user: postgres
+  changed_when: false

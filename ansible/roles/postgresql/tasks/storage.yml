@@ -1,6 +1,7 @@
 ---
-- name: Ensure /data parent directory has correct, explicit permissions (never rely on umask for a shared parent — this bit us:pg1 got 0755 by accident, pg2 got 0700 and silently blocked all access underneath)
-  file:
+- name: Ensure /data parent directory has correct, explicit permissions (never rely on umask for a shared parent — this bit us:pg1 got 0755 by accident, pg2 got
+    0700 and silently blocked all access underneath)
+  ansible.builtin.file:
     path: /data
     state: directory
     owner: root
@@ -8,22 +9,22 @@
     mode: "0711"
 
 - name: Format pgdata volume (idempotent — skips if already formatted)
-  filesystem:
+  community.general.filesystem:
     fstype: ext4
     dev: "{{ pgdata_device }}"
 
 - name: Format pgwal volume
-  filesystem:
+  community.general.filesystem:
     fstype: ext4
     dev: "{{ pgwal_device }}"
 
 - name: Format etcd volume
-  filesystem:
+  community.general.filesystem:
     fstype: ext4
     dev: "{{ etcd_device }}"
 
 - name: Create mount point directories (root-owned for now — chown to postgres happens after the package creates that user)
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0700"
@@ -33,7 +34,7 @@
     - "{{ etcd_mount }}"
 
 - name: Mount volumes persistently (writes to /etc/fstab so they survive a reboot)
-  mount:
+  ansible.posix.mount:
     path: "{{ item.path }}"
     src: "{{ item.src }}"
     fstype: ext4

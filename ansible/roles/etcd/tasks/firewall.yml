@@ -1,6 +1,6 @@
 ---
 - name: Allow etcd client/peer traffic through ufw (VPC-internal only — same reasoning as the PostgreSQL ufw rule from Stage 6)
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "{{ item }}"
     proto: tcp

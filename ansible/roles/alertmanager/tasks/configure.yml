@@ -1,6 +1,6 @@
 ---
 - name: Deploy alertmanager.yml
-  template:
+  ansible.builtin.template:
     src: alertmanager.yml.j2
     dest: /etc/alertmanager/alertmanager.yml
     owner: alertmanager
@@ -9,18 +9,18 @@
   notify: restart alertmanager
 
 - name: Validate alertmanager.yml before starting the service
-  command: /usr/local/bin/amtool check-config /etc/alertmanager/alertmanager.yml
+  ansible.builtin.command: /usr/local/bin/amtool check-config /etc/alertmanager/alertmanager.yml
   changed_when: false
 
 - name: Deploy Alertmanager systemd unit
-  template:
+  ansible.builtin.template:
     src: alertmanager.service.j2
     dest: /etc/systemd/system/alertmanager.service
     mode: "0644"
   notify: reload systemd and restart alertmanager
 
 - name: Enable and start Alertmanager
-  systemd:
+  ansible.builtin.systemd:
     name: alertmanager
     daemon_reload: true
     enabled: true

@@ -1,9 +1,9 @@
 ---
 - name: Install Prometheus
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Deploy TLS CA for verifying scrape targets
-  import_tasks: tls.yml
+  ansible.builtin.import_tasks: tls.yml
 
 - name: Configure and start Prometheus
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml

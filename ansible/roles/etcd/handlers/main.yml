@@ -1,11 +1,11 @@
 ---
-- name: restart etcd
-  systemd:
+- name: Restart etcd
+  ansible.builtin.systemd:
     name: etcd
     state: restarted
 
-- name: reload systemd and restart etcd
-  systemd:
+- name: Reload systemd and restart etcd
+  ansible.builtin.systemd:
     daemon_reload: true
     name: etcd
     state: restarted

@@ -1,25 +1,25 @@
 ---
 - name: Create dedicated postgres_exporter system user
-  user:
+  ansible.builtin.user:
     name: postgres_exporter
     system: true
     shell: /usr/sbin/nologin
     create_home: false
 
 - name: Download postgres_exporter release archive
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/prometheus-community/postgres_exporter/releases/download/v0.20.1/postgres_exporter-0.20.1.linux-amd64.tar.gz"
     dest: /tmp/postgres_exporter.tar.gz
     mode: "0644"
 
 - name: Extract postgres_exporter archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: /tmp/postgres_exporter.tar.gz
     dest: /tmp
     remote_src: true
 
 - name: Install postgres_exporter binary
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/postgres_exporter-0.20.1.linux-amd64/postgres_exporter"
     dest: /usr/local/bin/postgres_exporter
     mode: "0755"

@@ -1,11 +1,11 @@
 ---
 - name: Install unattended-upgrades
-  apt:
+  ansible.builtin.apt:
     name: unattended-upgrades
     state: present
 
 - name: Restrict unattended-upgrades to security updates only
-  copy:
+  ansible.builtin.copy:
     dest: /etc/apt/apt.conf.d/51unattended-upgrades-security-only
     content: |
       Unattended-Upgrade::Allowed-Origins {
@@ -17,7 +17,7 @@
     mode: "0644"
 
 - name: Enable the periodic apt timer that actually triggers unattended-upgrades
-  copy:
+  ansible.builtin.copy:
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     content: |
       APT::Periodic::Update-Package-Lists "1";
@@ -27,7 +27,7 @@
     mode: "0644"
 
 - name: Ensure the apt timers that run unattended-upgrades are enabled
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ item }}"
     enabled: true
     state: started

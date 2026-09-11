@@ -1,12 +1,12 @@
 ---
 - name: Install etcd binaries and prepare storage
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Deploy TLS certificates
-  import_tasks: tls.yml
+  ansible.builtin.import_tasks: tls.yml
 
 - name: Allow etcd traffic through the host firewall
-  import_tasks: firewall.yml
+  ansible.builtin.import_tasks: firewall.yml
 
 - name: Configure and start etcd
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml

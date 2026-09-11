@@ -1,6 +1,6 @@
 ---
 - name: Install pgBackRest
-  import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yml
 
 - name: Configure pgBackRest
-  import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yml

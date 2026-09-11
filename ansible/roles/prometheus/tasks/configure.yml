@@ -1,6 +1,6 @@
 ---
 - name: Deploy prometheus.yml
-  template:
+  ansible.builtin.template:
     src: prometheus.yml.j2
     dest: /etc/prometheus/prometheus.yml
     owner: prometheus
@@ -9,7 +9,7 @@
   notify: restart prometheus
 
 - name: Deploy alert rules
-  copy:
+  ansible.builtin.copy:
     src: alert_rules.yml
     dest: /etc/prometheus/alert_rules.yml
     owner: prometheus
@@ -18,18 +18,18 @@
   notify: restart prometheus
 
 - name: Validate prometheus.yml before starting the service
-  command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml
+  ansible.builtin.command: /usr/local/bin/promtool check config /etc/prometheus/prometheus.yml
   changed_when: false
 
 - name: Deploy Prometheus systemd unit
-  template:
+  ansible.builtin.template:
     src: prometheus.service.j2
     dest: /etc/systemd/system/prometheus.service
     mode: "0644"
   notify: reload systemd and restart prometheus
 
 - name: Enable and start Prometheus
-  systemd:
+  ansible.builtin.systemd:
     name: prometheus
     daemon_reload: true
     enabled: true

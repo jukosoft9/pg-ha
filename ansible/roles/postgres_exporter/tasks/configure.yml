@@ -1,6 +1,6 @@
 ---
 - name: Create /etc/postgres_exporter directory
-  file:
+  ansible.builtin.file:
     path: /etc/postgres_exporter
     state: directory
     owner: postgres_exporter
@@ -8,7 +8,7 @@
     mode: "0750"
 
 - name: Deploy connection string (contains the real superuser password — never log)
-  template:
+  ansible.builtin.template:
     src: postgres_exporter.env.j2
     dest: /etc/postgres_exporter/postgres_exporter.env
     owner: postgres_exporter
@@ -18,14 +18,14 @@
   notify: restart postgres_exporter
 
 - name: Deploy postgres_exporter systemd unit
-  template:
+  ansible.builtin.template:
     src: postgres_exporter.service.j2
     dest: /etc/systemd/system/postgres_exporter.service
     mode: "0644"
   notify: reload systemd and restart postgres_exporter
 
 - name: Enable and start postgres_exporter
-  systemd:
+  ansible.builtin.systemd:
     name: postgres_exporter
     daemon_reload: true
     enabled: true

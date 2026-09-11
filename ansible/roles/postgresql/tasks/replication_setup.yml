@@ -1,9 +1,10 @@
 ---
 - name: Create replication role on the primary
-  command: >
+  ansible.builtin.command: >
     psql -c "CREATE ROLE replicator WITH REPLICATION LOGIN ENCRYPTED PASSWORD '{{ postgres_replication_password }}';"
+  become: true
   become_user: postgres
-  register: create_role_result
-  failed_when: create_role_result.rc != 0 and 'already exists' not in create_role_result.stderr
-  changed_when: "'CREATE ROLE' in create_role_result.stdout"
+  register: postgresql_create_role_result
+  failed_when: postgresql_create_role_result.rc != 0 and 'already exists' not in postgresql_create_role_result.stderr
+  changed_when: "'CREATE ROLE' in postgresql_create_role_result.stdout"
   no_log: true

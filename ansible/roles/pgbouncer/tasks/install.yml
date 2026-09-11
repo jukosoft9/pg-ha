@@ -1,6 +1,6 @@
 ---
 - name: Install PgBouncer
-  apt:
+  ansible.builtin.apt:
     name: pgbouncer
     state: present
     update_cache: true

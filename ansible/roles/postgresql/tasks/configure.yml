@@ -1,6 +1,6 @@
 ---
 - name: Deploy postgresql.conf
-  template:
+  ansible.builtin.template:
     src: postgresql.conf.j2
     dest: "{{ pgdata_dir }}/postgresql.conf"
     owner: postgres
@@ -8,7 +8,7 @@
     mode: "0600"
 
 - name: Deploy pg_hba.conf
-  template:
+  ansible.builtin.template:
     src: pg_hba.conf.j2
     dest: "{{ pgdata_dir }}/pg_hba.conf"
     owner: postgres
@@ -16,14 +16,14 @@
     mode: "0600"
 
 - name: Deploy custom systemd service
-  template:
+  ansible.builtin.template:
     src: postgresql.service.j2
     dest: /etc/systemd/system/pg18.service
     mode: "0644"
   notify: reload systemd
 
 - name: Enable and start PostgreSQL
-  systemd:
+  ansible.builtin.systemd:
     name: pg18
     daemon_reload: true
     enabled: true

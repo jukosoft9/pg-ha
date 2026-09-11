@@ -1,25 +1,25 @@
 ---
 - name: Create dedicated node_exporter system user
-  user:
+  ansible.builtin.user:
     name: node_exporter
     system: true
     shell: /usr/sbin/nologin
     create_home: false
 
 - name: Download node_exporter release archive
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/prometheus/node_exporter/releases/download/v1.12.1/node_exporter-1.12.1.linux-amd64.tar.gz"
     dest: /tmp/node_exporter.tar.gz
     mode: "0644"
 
 - name: Extract node_exporter archive
-  unarchive:
+  ansible.builtin.unarchive:
     src: /tmp/node_exporter.tar.gz
     dest: /tmp
     remote_src: true
 
 - name: Install node_exporter binary
-  copy:
+  ansible.builtin.copy:
     src: "/tmp/node_exporter-1.12.1.linux-amd64/node_exporter"
     dest: /usr/local/bin/node_exporter
     mode: "0755"

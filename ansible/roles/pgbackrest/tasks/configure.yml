@@ -1,6 +1,6 @@
 ---
 - name: Create pgBackRest config directory
-  file:
+  ansible.builtin.file:
     path: /etc/pgbackrest
     state: directory
     owner: postgres
@@ -8,7 +8,7 @@
     mode: "0750"
 
 - name: Deploy pgbackrest.conf
-  template:
+  ansible.builtin.template:
     src: pgbackrest.conf.j2
     dest: /etc/pgbackrest/pgbackrest.conf
     owner: postgres
@@ -16,7 +16,7 @@
     mode: "0640"
 
 - name: Create pgBackRest log directory
-  file:
+  ansible.builtin.file:
     path: /var/log/pgbackrest
     state: directory
     owner: postgres

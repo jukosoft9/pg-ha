@@ -1,6 +1,6 @@
 ---
 - name: Install pgBackRest
-  apt:
+  ansible.builtin.apt:
     name: pgbackrest
     state: present
     update_cache: true

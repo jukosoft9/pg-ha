@@ -1,6 +1,6 @@
 ---
 - name: Create /etc/pgbouncer_exporter directory
-  file:
+  ansible.builtin.file:
     path: /etc/pgbouncer_exporter
     state: directory
     owner: pgbouncer_exporter
@@ -8,7 +8,7 @@
     mode: "0750"
 
 - name: Deploy connection string (contains the real pgbouncer_admin password — never log)
-  template:
+  ansible.builtin.template:
     src: pgbouncer_exporter.env.j2
     dest: /etc/pgbouncer_exporter/pgbouncer_exporter.env
     owner: pgbouncer_exporter
@@ -18,14 +18,14 @@
   notify: restart pgbouncer_exporter
 
 - name: Deploy pgbouncer_exporter systemd unit
-  template:
+  ansible.builtin.template:
     src: pgbouncer_exporter.service.j2
     dest: /etc/systemd/system/pgbouncer_exporter.service
     mode: "0644"
   notify: reload systemd and restart pgbouncer_exporter
 
 - name: Enable and start pgbouncer_exporter
-  systemd:
+  ansible.builtin.systemd:
     name: pgbouncer_exporter
     daemon_reload: true
     enabled: true

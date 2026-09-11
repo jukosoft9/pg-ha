@@ -1,6 +1,6 @@
 ---
 - name: Create /etc/patroni config directory
-  file:
+  ansible.builtin.file:
     path: /etc/patroni
     state: directory
     owner: postgres
@@ -8,7 +8,7 @@
     mode: "0750"
 
 - name: Deploy patroni.yml (contains real passwords — never log this)
-  template:
+  ansible.builtin.template:
     src: patroni.yml.j2
     dest: /etc/patroni/patroni.yml
     owner: postgres
@@ -18,14 +18,14 @@
   notify: restart patroni
 
 - name: Deploy Patroni systemd unit
-  template:
+  ansible.builtin.template:
     src: patroni.service.j2
     dest: /etc/systemd/system/patroni.service
     mode: "0644"
   notify: reload systemd and restart patroni
 
 - name: Enable and start Patroni
-  systemd:
+  ansible.builtin.systemd:
     name: patroni
     daemon_reload: true
     enabled: true

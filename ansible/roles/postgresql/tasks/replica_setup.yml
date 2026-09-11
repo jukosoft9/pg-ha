@@ -1,5 +1,6 @@
+---
 - name: Take a base backup from the primary (populates PGDATA and PGWAL, writes standby.signal)
-  command: >
+  ansible.builtin.command: >
     /usr/lib/postgresql/18/bin/pg_basebackup
     --host={{ hostvars[groups['pg_primary'][0]]['private_ip'] }}
     --username=replicator
@@ -12,6 +13,7 @@
     --progress
   args:
     creates: "{{ pgdata_dir }}/PG_VERSION"
+  become: true
   become_user: postgres
   environment:
     PGPASSWORD: "{{ postgres_replication_password }}"

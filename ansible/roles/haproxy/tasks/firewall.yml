@@ -1,6 +1,6 @@
 ---
 - name: Allow HAProxy client ports through ufw (VPC-internal for app traffic; stats port restricted separately)
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "{{ item }}"
     proto: tcp
@@ -11,7 +11,7 @@
     - "7000"
 
 - name: Allow native HAProxy Prometheus metrics from the monitoring host only
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "8404"
     proto: tcp

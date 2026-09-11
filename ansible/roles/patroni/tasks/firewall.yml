@@ -1,6 +1,6 @@
 ---
 - name: Allow Patroni REST API traffic through ufw (VPC-internal only — HAProxy health checks need this cross-node, unlike our previous local-only testing)
-  ufw:
+  community.general.ufw:
     rule: allow
     port: "8008"
     proto: tcp

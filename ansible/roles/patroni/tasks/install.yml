@@ -1,12 +1,12 @@
 ---
 - name: Install pip
-  apt:
+  ansible.builtin.apt:
     name: python3-pip
     state: present
     update_cache: true
 
 - name: Install Patroni and its etcd3/psycopg2 dependencies
-  pip:
+  ansible.builtin.pip:
     name:
       - patroni[etcd3]==4.1.5
       - psycopg2-binary
