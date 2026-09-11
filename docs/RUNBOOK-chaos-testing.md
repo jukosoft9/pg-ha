@@ -396,3 +396,71 @@ confirmed the cluster was genuinely fine throughout.
 All three etcd members confirmed healthy again within seconds. No
 Patroni/PostgreSQL-level recovery needed at all - nothing on that layer
 was ever actually disrupted.
+
+## Scenario 6: Kill a second etcd member - genuine quorum loss, isolated from PG/Patroni
+
+More rigorous than Scenario 3's version of this: that test killed both
+replica instances entirely, which meant PostgreSQL, Patroni, AND etcd
+all died simultaneously on those two nodes - a real result, but not
+clean proof that quorum loss specifically was the cause. This time,
+only etcd is stopped on two nodes; PostgreSQL and Patroni keep running
+untouched on all three. Deliberately left the current LEADER's own
+etcd process alive, killing etcd only on the other two - isolating
+whether the leader demotes because it truly cannot reach quorum, not
+merely because it lost all etcd connectivity of its own.
+
+### Commands
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # confirmed pg2 = Leader
+
+    ssh pg1 "sudo systemctl stop etcd"
+    ssh pg3 "sudo systemctl stop etcd"
+
+    ssh pg2 "sudo -u postgres psql -c \"SELECT pg_is_in_recovery();\""
+    ssh pg2 "sudo journalctl -u patroni --since '2 minutes ago' --no-pager | grep -iE 'demot|leader|dcs|quorum'"
+
+### Result - the most operationally significant finding in this exercise
+
+pg2 continued confidently logging "no action. I am (pg2), the leader
+with the lock" every ~10 seconds for a real, measured window of
+approximately 1 minute 50 seconds (19:24:45 through 19:26:15) before
+finally erroring and demoting:
+
+    19:26:35 ERROR: Error communicating with DCS
+    19:26:35 INFO: demoting self because DCS is not accessible and I was a leader
+    19:26:35 INFO: Demoting self (offline)
+    19:26:36 INFO: demoted self because DCS is not accessible and I was a leader
+
+This is meaningfully different from Scenario 3's sub-250ms reaction, and
+the reason makes sense once examined: pg2's own local etcd process
+never died (unlike Scenario 3, where the etcd processes on the killed
+nodes died along with everything else on those instances). Patroni's
+routine local heartbeat against its own etcd kept succeeding normally
+the whole time - the isolation only became visible once some underlying
+operation requiring genuine quorum consensus (most likely a lease
+renewal) finally timed out client-side.
+
+pg_is_in_recovery() confirmed the real consequence directly: f
+throughout the ~110 second window (still genuinely a writable primary),
+flipping to t only after the demotion actually completed.
+
+### Real implication
+
+A lone, quorum-isolated leader does not fail loudly or immediately - it
+keeps answering locally and believing itself legitimate for a real,
+non-trivial window, bounded by whatever client-side timeout eventually
+surfaces the quorum failure, not by any instant local health check.
+This is a genuine, narrow risk window inherent to this specific failure
+mode (leader's own etcd survives, but loses reachability to the other
+members) - worth remembering as a real operational number, not just
+"it eventually self-corrects."
+
+### Recovery
+
+    ssh pg1 "sudo systemctl start etcd"
+    ssh pg3 "sudo systemctl start etcd"
+
+pg2 correctly reclaimed leadership once quorum returned - timeline
+advanced 11 -> 12, confirming a genuine demotion/re-promotion cycle,
+not a no-op. Full, clean self-healing.
