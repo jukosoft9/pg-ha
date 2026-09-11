@@ -344,3 +344,55 @@ than assuming this result covers it.
 All three nodes confirmed healthy at TL 11, zero lag on both standbys.
 No cleanup needed - this scenario ends in a genuinely healthy, real
 topology, not a state requiring restoration.
+
+## Scenario 5: Kill one etcd member, confirm 2-of-3 quorum is transparent
+
+Deliberately narrow scope: stops only the etcd service on one node,
+leaving Patroni and PostgreSQL on that same node completely untouched -
+isolating etcd's own resilience specifically, not conflating it with
+anything else already tested. Targeted the current plain Replica
+(pg3), not the leader or sync standby, to keep the test singular.
+Prediction going in: nothing observable should happen at all - if
+anything does, that itself is the real finding.
+
+### Commands
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # confirmed pg3 = plain Replica
+
+    ssh pg3 "sudo systemctl stop etcd"
+
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    ssh pg1 "sudo etcdctl --cacert=/etc/etcd-tls/ca.crt --cert=/etc/etcd-tls/server.crt --key=/etc/etcd-tls/server.key --endpoints=https://10.0.0.83:2379,https://10.0.1.196:2379,https://10.0.2.236:2379 endpoint health --cluster"
+    ssh pg3 "sudo systemctl status patroni --no-pager | head -5"
+
+### Result
+
+Exactly the boring, correct outcome predicted. patronictl list showed
+the identical topology throughout - pg1 Sync Standby, pg2 Leader, pg3
+still Replica, zero lag - despite patronictl itself logging real
+Connection refused errors while querying the dead member before
+correctly falling back to the two survivors.
+
+Direct etcd-level evidence, not just Patroni's view: etcdctl confirmed
+the two surviving members (10.0.0.83, 10.0.1.196) each genuinely healthy,
+successfully committing a real proposal - actual quorum participation,
+not just a running process - while 10.0.2.236 correctly and honestly
+reported unhealthy with a real connection-refused error. pg3's own
+Patroni process remained active (running) throughout, completely
+undisturbed by its local etcd being down.
+
+Minor tooling note: etcdctl's own final summary line ("Error: unhealthy
+cluster") is a strict, conservative warning triggered by any single
+member being down, not evidence of an actual quorum problem - the
+individual per-endpoint health lines are the real signal, and they
+confirmed the cluster was genuinely fine throughout.
+
+### Recovery
+
+    ssh pg3 "sudo systemctl start etcd"
+    ssh pg1 "sudo etcdctl ... endpoint health --cluster"
+
+All three etcd members confirmed healthy again within seconds. No
+Patroni/PostgreSQL-level recovery needed at all - nothing on that layer
+was ever actually disrupted.
