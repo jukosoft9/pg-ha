@@ -13,8 +13,8 @@ jobs:
       run:
         working-directory: terraform
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v5
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.16.0"
       - name: terraform fmt check
@@ -27,7 +27,7 @@ jobs:
   ansible-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install ansible-lint
         run: pip install ansible-lint
       - name: Install Ansible collections
