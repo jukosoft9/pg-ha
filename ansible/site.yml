@@ -17,6 +17,12 @@
   roles:
     - common
 
+- name: PostgreSQL — storage, package install, TLS, and firewall prerequisites
+  hosts: postgres
+  become: true
+  roles:
+    - postgresql
+
 - name: Etcd — distributed consensus store
   hosts: etcd
   become: true

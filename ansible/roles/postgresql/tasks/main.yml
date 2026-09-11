@@ -2,13 +2,13 @@
 - name: Storage — format and mount dedicated volumes
   ansible.builtin.import_tasks: storage.yml
 
-- name: Install PostgreSQL and disable the package's auto-initialized cluster
+- name: Install PostgreSQL and mask the package's auto-initialized cluster
   ansible.builtin.import_tasks: install.yml
 
 - name: Allow PostgreSQL traffic through the host firewall
   ansible.builtin.import_tasks: firewall.yml
 
-- name: Set ownership of PostgreSQL data/WAL directories (all postgres hosts, now that the package user exists)
+- name: Set ownership of PostgreSQL data/WAL directories (all postgres hosts, now that the package user exists — a genuine prerequisite for Patroni's own bootstrap, not something Patroni does itself)
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -19,24 +19,5 @@
     - "{{ pgdata_mount }}"
     - "{{ pgwal_mount }}"
 
-- name: Initialize the cluster on the dedicated volume (primary only)
-  ansible.builtin.import_tasks: initdb.yml
-  when: inventory_hostname in groups['pg_primary']
-
-- name: Provision replica via pg_basebackup (replicas only)
-  ansible.builtin.import_tasks: replica_setup.yml
-  when: inventory_hostname in groups['pg_replica']
-
-- name: Deploy TLS certificates
+- name: Deploy TLS certificates (consumed by Patroni, PgBouncer, and pgBackRest — none of them write these files themselves)
   ansible.builtin.import_tasks: tls.yml
-
-- name: Configure and start PostgreSQL
-  ansible.builtin.import_tasks: configure.yml
-
-- name: Set explicit application_name for synchronous replication identification (replicas only)
-  ansible.builtin.import_tasks: replica_conninfo.yml
-  when: inventory_hostname in groups['pg_replica']
-
-- name: Create replication role (primary only)
-  ansible.builtin.import_tasks: replication_setup.yml
-  when: inventory_hostname in groups['pg_primary']
