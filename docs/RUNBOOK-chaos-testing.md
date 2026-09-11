@@ -546,3 +546,69 @@ finding than either scenario alone would have produced.
 pg3 correctly elected as new leader (pg2 having demoted itself, one of
 the two remaining nodes had to take over) - timeline advanced 12 -> 13,
 both surviving nodes healthy with zero lag.
+
+## Scenario 8: HAProxy failure - proving a known, accepted limitation
+
+Different in character from every prior scenario: this is not expected
+to demonstrate self-healing. Keepalived and a floating VIP were
+deliberately skipped back in Stage 9 as an explicit scope decision - the
+only redundancy that exists is "a second, independent load balancer
+exists," not "traffic automatically finds it." This scenario proves
+that limitation with real evidence rather than leaving it as a
+theoretical caveat.
+
+Deliberately isolated to the haproxy service only, not the instance -
+testing specifically whether the proxy process dying causes an outage
+for a client pointed at it, not reintroducing instance-level failure
+modes already covered elsewhere.
+
+### Commands
+
+    ssh lb1 "sudo systemctl status haproxy --no-pager | head -3"
+    ssh lb2 "sudo systemctl status haproxy --no-pager | head -3"
+    ssh pg1 "sudo patronictl -c /etc/patroni/patroni.yml list"
+    # confirmed both healthy, pg3 = Leader
+
+    # Prove lb1 works normally first
+    ssh pg1 "PGPASSWORD='...' psql -h 10.0.0.241 -p 5000 -U postgres -d postgres -c 'SELECT pg_is_in_recovery();'"
+    # returned f
+
+    ssh lb1 "sudo systemctl stop haproxy"
+
+    # Retry the identical connection
+    ssh pg1 "PGPASSWORD='...' psql -h 10.0.0.241 -p 5000 -U postgres -d postgres -c 'SELECT pg_is_in_recovery();'"
+
+    # Confirm lb2 is completely unaffected
+    ssh pg1 "PGPASSWORD='...' psql -h 10.0.1.160 -p 5000 -U postgres -d postgres -c 'SELECT pg_is_in_recovery();'"
+
+### Result
+
+Before: lb1 correctly routed to the real primary (f). After stopping
+haproxy: immediate, total failure -
+
+    psql: error: connection to server at "10.0.0.241", port 5000 failed: Connection refused
+
+Not a delay, not a stall, not a silent reroute - a hard, immediate
+outage for anyone still pointed at lb1 specifically. lb2, completely
+untouched, continued routing correctly the entire time (f).
+
+### Real implication
+
+This is not a bug - it is the direct, predictable, now-proven
+consequence of a scope decision made explicitly back in Stage 9. The
+only thing protecting an application from this outage in the current
+architecture is the application itself being configured to know about
+and retry a second address (lb2) - nothing in the infrastructure
+automatically reroutes traffic on its own. The known, available remedy
+is Keepalived with a floating VIP shared between lb1/lb2, which would
+make this failure mode transparent to clients. Genuinely worth building
+in a real production deployment; explicitly out of scope for this
+project, and this scenario is the honest proof of exactly what that
+tradeoff costs.
+
+### Recovery
+
+    ssh lb1 "sudo systemctl start haproxy"
+
+lb1 confirmed fully restored, correctly routing to the real primary
+again within seconds of the service restarting.
